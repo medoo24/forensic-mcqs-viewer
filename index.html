@@ -38,11 +38,12 @@ main{padding:14px 18px;max-width:1700px;margin:0 auto}
 .book-sel{flex:1;min-width:250px;font-weight:600}
 
 /* Page Chips */
-.chips{display:flex;flex-wrap:wrap;gap:3px;max-height:65px;overflow-y:auto;background:var(--card);padding:6px 10px;border-radius:8px;border:1px solid var(--bdr);margin-bottom:10px}
-.chip{padding:2px 7px;font-size:11px;font-weight:600;border-radius:4px;border:1px solid var(--bdr);background:var(--tag-bg);color:var(--mut);cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:3px;max-height:75px;overflow-y:auto;background:var(--card);padding:6px 10px;border-radius:8px;border:1px solid var(--bdr);margin-bottom:10px}
+.chip{padding:3px 8px;font-size:11px;font-weight:600;border-radius:4px;border:1px solid var(--bdr);background:var(--tag-bg);color:var(--txt);cursor:pointer;transition:all 0.15s ease}
+.chip:hover{border-color:var(--pri);color:var(--pri)}
 .chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
-.chip.hasq{color:var(--txt);border-color:#94a3b8}
-.chip.lesson-hi{background:var(--suc-bg);color:var(--suc);border-color:var(--suc-bd)}
+.chip.lesson-hi{background:var(--suc-bg);color:var(--suc);border-color:var(--suc-bd);font-weight:700}
+.chip.lesson-hi.on{background:var(--suc);color:#fff;border-color:var(--suc)}
 
 /* Compare Layout */
 .cmp{display:grid;grid-template-columns:1fr 1.1fr;gap:14px;align-items:start}
@@ -60,9 +61,6 @@ main{padding:14px 18px;max-width:1700px;margin:0 auto}
 .vc{position:absolute;transform-origin:center center}
 .vc img{max-width:none;display:block;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 
-/* Evidence image in cards */
-.ev-img{max-width:100%;border-radius:5px;margin-top:6px;border:1px solid var(--bdr);cursor:zoom-in}
-
 /* Q Cards */
 .qcard{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:12px;margin-bottom:10px}
 .qcard.conflict{border-left:3px solid var(--err)}
@@ -77,7 +75,7 @@ main{padding:14px 18px;max-width:1700px;margin:0 auto}
 .opt{padding:5px 9px;border-radius:5px;border:1px solid var(--bdr);font-size:13px;display:flex;gap:6px;align-items:flex-start}
 .opt.ok{background:var(--suc-bg);color:var(--suc);border-color:var(--suc-bd);font-weight:700}
 .ansbox{background:var(--tag-bg);padding:7px 10px;border-radius:5px;font-size:13px;margin-bottom:8px}
-.evbox{font-size:11px;color:var(--mut);font-style:italic;margin-top:3px}
+.evbox{font-size:12px;color:var(--txt);background:var(--card);padding:6px 9px;border-radius:4px;border:1px solid var(--bdr);margin-top:5px;white-space:pre-wrap;word-break:break-word}
 .qfoot{display:flex;justify-content:space-between;align-items:center;margin-top:7px;padding-top:6px;border-top:1px dashed var(--bdr);font-size:11px}
 
 /* Filter bars */
@@ -90,9 +88,8 @@ main{padding:14px 18px;max-width:1700px;margin:0 auto}
 .srcchips{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0}
 .sc{font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
 [data-theme=dark] .sc{background:#1e3a8a;color:#bfdbfe;border-color:#1d4ed8}
-.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:9px;margin-top:9px}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin-top:10px}
 .mbox{background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:10px;font-size:12px}
-.mbox-img{width:100%;max-height:120px;object-fit:cover;border-radius:4px;margin-bottom:6px;border:1px solid var(--bdr);cursor:zoom-in}
 
 /* Pagination */
 .pagi{display:flex;justify-content:center;gap:10px;margin-top:14px;align-items:center}
@@ -196,7 +193,7 @@ ol li{margin-left:18px;margin-bottom:4px}
       </div>
       <div class="vw" id="vw">
         <div class="vc" id="vc">
-          <img id="pg-img" src="" alt="Loading page..." onerror="this.alt='Image not available'">
+          <img id="pg-img" src="" alt="Loading page..." onerror="this.alt='Image not available for this page'">
         </div>
       </div>
       <p style="font-size:11px;color:var(--mut);margin-top:5px">💡 Click & drag to pan · Buttons to pan &amp; zoom · Arrow keys ←→ to flip pages</p>
@@ -405,8 +402,6 @@ python run1b.py
 
   window.fetch = function(url, opts){
     var us = String(url);
-    /* Strip leading / so it becomes relative from current page */
-    var rel = us.replace(/^\/api\//, '');
 
     if(us.indexOf('/api/stats') !== -1) return origFetch(base+'data/stats.json');
     if(us.indexOf('/api/books') !== -1) return origFetch(base+'data/books.json');
@@ -463,7 +458,7 @@ python run1b.py
         var qf = p3.qtype||'all';
         var lf2 = p3.lesson||'all';
         var pg2 = parseInt(p3.page||'1');
-        var lm2 = parseInt(p3.limit||'30');
+        var lm2 = parseInt(p3.limit||'25');
         var filt = allQs.filter(function(it){
           if(sf==='marked'&&(it.answer_status!=='shown_in_file'||it.answer_source==='from_key')) return false;
           if(sf==='key'&&it.answer_source!=='from_key') return false;
@@ -480,7 +475,6 @@ python run1b.py
     }
 
     if(us.indexOf('/api/page_image') !== -1){
-      /* Images not hosted on GitHub Pages — return a placeholder response */
       return Promise.resolve(new Response('', {status:404}));
     }
 
@@ -575,7 +569,7 @@ function populateLessons(){
   G('cmp-lesson').innerHTML=lo;
   G('cl-lesson').innerHTML='<option value="all">All Lessons</option>'+allLessons.map(function(l){return'<option value="'+esc(l)+'">'+esc(l)+'</option>';}).join('');
   G('qb-lesson').innerHTML='<option value="all">All Lessons</option>'+allLessons.map(function(l){return'<option value="'+esc(l)+'">'+esc(l)+'</option>';}).join('');
-  G('cmp-lesson').onchange=renderCurPage;
+  G('cmp-lesson').onchange=function(){renderChips();renderCurPage();};
 
   /* Populate edit modal lesson dropdown */
   G('eq-lesson').innerHTML='<option value="">— no lesson —</option>'+allLessons.map(function(l){return'<option value="'+esc(l)+'">'+esc(l)+'</option>';}).join('');
@@ -584,10 +578,13 @@ function populateLessons(){
 async function selectBook(slug){
   curBook=allBooks.find(function(b){return b.slug===slug;})||null;
   if(!curBook)return;
-  curPg=1; panX=0;panY=0;zoom=1;applyTx();
-  G('pg-tot').textContent='/ '+curBook.max_page;
-  G('pg-in').max=curBook.max_page;
+  panX=0;panY=0;zoom=1;applyTx();
   await loadBkQs(slug);
+
+  /* Get list of valid pages that contain questions */
+  var qPages = getQuestionPages();
+  curPg = qPages.length ? qPages[0] : 1;
+
   renderChips();
   renderCurPage();
 }
@@ -597,24 +594,45 @@ async function loadBkQs(slug){
   catch(e){curBkQs=[];}
 }
 
-/* ─── LESSON-AWARE PAGE CHIPS ─── */
+/* Get unique sorted list of pages containing questions */
+function getQuestionPages(){
+  var pages = [];
+  var seen = {};
+  curBkQs.forEach(function(q){
+    if(q.source_page && !seen[q.source_page]){
+      seen[q.source_page] = true;
+      pages.push(q.source_page);
+    }
+  });
+  pages.sort(function(a,b){return a-b;});
+  return pages;
+}
+
+/* ─── ONLY SHOW PAGES WITH QUESTIONS (REMOVE EXTRA EMPTY PAGES) ─── */
 function renderChips(){
   var selLesson=G('cmp-lesson').value;
   var lessonPages=new Set();
   if(selLesson!=='all'){
     curBkQs.forEach(function(q){if((q.lesson||'').trim()===selLesson)lessonPages.add(q.source_page);});
   }
-  var h='';
-  for(var p=1;p<=curBook.max_page;p++){
-    var hasQ=curBkQs.some(function(q){return q.source_page===p;});
-    var isLH=selLesson!=='all'&&lessonPages.has(p);
-    var cls='chip'+(p===curPg?' on':'')+(hasQ?' hasq':'')+(isLH?' lesson-hi':'');
-    h+='<span class="'+cls+'" data-p="'+p+'" title="Page '+p+(isLH?' • '+selLesson:'')+'">p.'+p+'</span>';
+
+  var validPages = getQuestionPages();
+  if(!validPages.length && curBook){
+    validPages = [1];
   }
+
+  var h='';
+  validPages.forEach(function(p){
+    var isLH=selLesson!=='all'&&lessonPages.has(p);
+    var cls='chip'+(p===curPg?' on':'')+(isLH?' lesson-hi':'');
+    h+='<span class="'+cls+'" data-p="'+p+'" title="Page '+p+(isLH?' • '+selLesson:'')+'">p.'+p+'</span>';
+  });
   G('pgchips').innerHTML=h;
   G('pgchips').querySelectorAll('.chip').forEach(function(c){
     c.onclick=function(){curPg=parseInt(c.dataset.p);renderCurPage();};
   });
+
+  G('pg-tot').textContent='/ '+validPages.length+' pages with Qs (book p.1-'+curBook.max_page+')';
 }
 
 function imgUrlForPage(pg){
@@ -626,16 +644,17 @@ function renderCurPage(){
   G('pg-in').value=curPg;
   G('pg-ind').textContent='Page '+curPg+' of '+curBook.max_page;
 
-  /* Image: try server API first, then direct path for local, then img_dir */
-  var imgSrc='/api/page_image?slug='+curBook.slug+'&page='+curPg;
+  /* Image: only in Tab 1 */
   var img=G('pg-img');
   img.onerror=function(){
-    /* Fallback to direct path (works when server.py is running locally) */
     var alt2=imgUrlForPage(curPg);
-    if(alt2&&img.src.indexOf(alt2)===-1){img.src=alt2;}
-    else{img.alt='Image not available for this page';}
+    if(alt2&&img.src.indexOf(alt2)===-1){
+      img.src=alt2;
+    } else {
+      img.alt='Page image only available when running local server.py';
+    }
   };
-  img.src=imgSrc;
+  img.src='/api/page_image?slug='+curBook.slug+'&page='+curPg;
 
   var selLesson=G('cmp-lesson').value;
   var qs=curBkQs.filter(function(q){
@@ -651,7 +670,6 @@ function renderCurPage(){
     G('qcont').innerHTML=qs.map(function(q,i){return renderQCard(q,i);}).join('');
   }
 
-  /* Update chips */
   renderChips();
 }
 
@@ -660,7 +678,6 @@ function renderQCard(q,idx){
   var al=(q.answer_letter||'').trim().toUpperCase();
   var isKey=q.answer_source==='from_key';
   var hasAns=Boolean(al);
-  var evImgSrc=imgUrlForPage(q.source_page);
 
   var optsH='';
   var okeys=Object.keys(opts).sort();
@@ -671,14 +688,9 @@ function renderQCard(q,idx){
     }).join('')+'</div>';
   }
 
-  /* Build answer section with image evidence */
   var ansH='<div class="ansbox"><b>Answer:</b> '+(al?'<b>'+al+'</b>':'<span style="color:#ef4444">None</span>');
-  if(q.answer_evidence) ansH+='<div class="evbox">Evidence: &ldquo;'+esc(q.answer_evidence)+'&rdquo;</div>';
-  if(q.explanation)    ansH+='<div class="evbox">Explanation: '+esc(q.explanation)+'</div>';
-  /* Image evidence thumbnail */
-  if(evImgSrc){
-    ansH+='<div style="margin-top:5px"><span style="font-size:11px;color:var(--mut)">📷 Image source (p.'+q.source_page+'):</span><br><img class="ev-img" src="'+evImgSrc+'" alt="Page '+q.source_page+'" onclick="showLbk(this.src)" title="Click to enlarge" loading="lazy"></div>';
-  }
+  if(q.answer_evidence) ansH+='<div class="evbox"><b>Evidence:</b> '+esc(q.answer_evidence)+'</div>';
+  if(q.explanation)    ansH+='<div class="evbox"><b>Explanation:</b> '+esc(q.explanation)+'</div>';
   ansH+='</div>';
 
   return'<div class="qcard'+(q.conflict?' conflict':'')+'">'+
@@ -699,8 +711,28 @@ function renderQCard(q,idx){
 }
 
 /* ─── PAGE CONTROLS ─── */
-G('pp-btn').onclick=function(){if(curPg>1){curPg--;renderCurPage();}};
-G('np-btn').onclick=function(){if(curPg<curBook.max_page){curPg++;renderCurPage();}};
+G('pp-btn').onclick=function(){
+  var qPages = getQuestionPages();
+  var curIdx = qPages.indexOf(curPg);
+  if(curIdx > 0){
+    curPg = qPages[curIdx - 1];
+    renderCurPage();
+  } else if(curPg > 1){
+    curPg--;
+    renderCurPage();
+  }
+};
+G('np-btn').onclick=function(){
+  var qPages = getQuestionPages();
+  var curIdx = qPages.indexOf(curPg);
+  if(curIdx !== -1 && curIdx < qPages.length - 1){
+    curPg = qPages[curIdx + 1];
+    renderCurPage();
+  } else if(curPg < curBook.max_page){
+    curPg++;
+    renderCurPage();
+  }
+};
 G('pg-in').onchange=function(){var v=parseInt(this.value);if(v>=1&&v<=curBook.max_page){curPg=v;renderCurPage();}};
 G('rfrsh').onclick=async function(){await loadBkQs(curBook.slug);renderCurPage();};
 window.addEventListener('keydown',function(e){
@@ -709,7 +741,7 @@ window.addEventListener('keydown',function(e){
   if(e.key==='ArrowRight') G('np-btn').click();
 });
 
-/* ─── CLUSTERS ─── */
+/* ─── CLUSTERS (TAB 2) ─── */
 var clPg=1;
 async function loadClusters(){
   window.clLoaded=true;
@@ -730,19 +762,27 @@ async function loadClusters(){
 function renderCluster(c){
   var members=c.members||[];
   var mH=members.map(function(m){
-    var imgSrc='';
-    /* Try to derive img dir from book name (approximation) */
-    if(m.source_file && allBooks.length){
-      var bk=allBooks.find(function(b){return b.name===m.source_file;});
-      if(bk&&bk.img_dir) imgSrc=bk.img_dir+'/p'+String(m.source_page).padStart(4,'0')+'.jpg';
+    var mOpts = m.options || {};
+    var mKeys = Object.keys(mOpts).sort();
+    var mOptsH = '';
+    if(mKeys.length){
+      mOptsH = '<div style="margin-top:5px;padding-left:4px;border-left:2px solid var(--bdr)">' +
+        mKeys.map(function(k){
+          var isA = m.answer_letter && k.toUpperCase() === m.answer_letter.toUpperCase();
+          return '<div style="font-size:11px;' + (isA ? 'font-weight:700;color:var(--suc)' : 'color:var(--mut)') + '">' +
+            '<b>' + k + '.</b> ' + esc(mOpts[k]) + (isA ? ' ✓' : '') + '</div>';
+        }).join('') + '</div>';
     }
+
+    var evText = m.answer_evidence || '';
+
     return'<div class="mbox">'+
       '<div style="font-weight:700;margin-bottom:5px;color:var(--pri)">'+esc(m.source_file||'?')+' (p.'+m.source_page+')</div>'+
-      (imgSrc?'<img class="mbox-img" src="'+imgSrc+'" alt="Page" onclick="showLbk(this.src)" loading="lazy" title="Click to enlarge">':'')+
-      '<div style="margin-bottom:4px"><b>Q:</b> '+esc((m.question||'').substring(0,120))+(m.question&&m.question.length>120?'…':'')+'</div>'+
-      '<div><b>Answer:</b> '+(m.answer_letter?'<span class="badge g">'+esc(m.answer_letter.toUpperCase())+'</span>':'<span class="badge a">None</span>')+
+      '<div style="margin-bottom:5px;white-space:pre-wrap;line-height:1.4"><b>Q:</b> '+esc(m.question||'')+'</div>'+
+      mOptsH+
+      '<div style="margin-top:6px"><b>Answer:</b> '+(m.answer_letter?'<span class="badge g">'+esc(m.answer_letter.toUpperCase())+'</span>':'<span class="badge a">None</span>')+
       (m.answer_source?'<span style="font-size:10px;color:var(--mut)"> ('+esc(m.answer_source)+')</span>':'')+'</div>'+
-      (m.options?'<div style="font-size:10px;color:var(--mut);margin-top:3px">'+Object.keys(m.options).length+' options: '+Object.keys(m.options).sort().join(', ')+'</div>':'')+
+      (evText?'<div class="evbox" style="margin-top:5px;font-size:11px"><b>Quote / Evidence:</b> '+esc(evText)+'</div>':'')+
       '</div>';
   }).join('');
 
@@ -759,8 +799,8 @@ function renderCluster(c){
     '</div>'+
     '<div class="qtxt">'+esc(c.canonical_question)+'</div>'+
     '<div class="srcchips">'+(c.appears_in||[]).map(function(s){return'<span class="sc">'+esc(s)+'</span>';}).join('')+'</div>'+
-    '<details style="margin-top:10px">'+
-    '<summary style="cursor:pointer;font-weight:600;color:var(--pri)">🔍 Compare all '+members.length+' occurrences in source books</summary>'+
+    '<details style="margin-top:10px" open>'+
+    '<summary style="cursor:pointer;font-weight:600;color:var(--pri);margin-bottom:6px">🔍 Compare all '+members.length+' occurrences with full quotes &amp; options</summary>'+
     '<div class="mgrid">'+mH+'</div>'+
     '</details>'+
     '</div>';
@@ -770,7 +810,7 @@ G('cl-go').onclick=function(){clPg=1;loadClusters();};
 G('cl-prev').onclick=function(){if(clPg>1){clPg--;loadClusters();}};
 G('cl-next').onclick=function(){clPg++;loadClusters();};
 
-/* ─── Q-BANK ─── */
+/* ─── Q-BANK (TAB 3) ─── */
 var qbPg=1;
 async function loadQuestions(){
   window.qbLoaded=true;
@@ -784,19 +824,34 @@ async function loadQuestions(){
     G('qb-cnt').textContent='Showing '+d.questions.length+' of '+d.total;
     G('qb-pgn').textContent='Page '+qbPg;
     G('qb-cont').innerHTML=d.questions.map(function(it){
+      var opts = it.options || {};
+      var okeys = Object.keys(opts).sort();
+      var al = (it.answer_letter || '').trim().toUpperCase();
+      var optsH = '';
+      if(okeys.length){
+        optsH = '<div class="opts" style="margin:8px 0">' + okeys.map(function(k){
+          var isA = al && k.toUpperCase() === al;
+          return '<div class="opt' + (isA ? ' ok' : '') + '"><b>' + k + '.</b> <span>' + esc(opts[k]) + '</span>' + (isA ? ' ✓' : '') + '</div>';
+        }).join('') + '</div>';
+      }
+
+      var ansH = '<div class="ansbox"><b>Answer:</b> ' +
+        (al ? '<b>' + al + '</b> (' + esc(it.answer_source || 'file') + ')' : '<span style="color:#ef4444">Unanswered</span>');
+      if(it.answer_evidence) {
+        ansH += '<div class="evbox"><b>Quote / Evidence:</b> ' + esc(it.answer_evidence) + '</div>';
+      }
+      ansH += '</div>';
+
       return'<div class="qcard'+(it.conflict?' conflict':'')+'">'+
         '<div class="qhdr">'+
         '<span class="badge b">#'+it.id+'</span>'+
-        '<span class="badge">'+esc(it.qtype||'')+'</span>'+
+        '<span class="badge">'+esc(it.qtype||'MCQ')+'</span>'+
         (it.lesson?'<span class="badge">'+esc(it.lesson)+'</span>':'')+
         (it.repeat_count>1?'<span class="badge g">In '+it.repeat_count+' Books</span>':'')+
         (it.conflict?'<span class="badge r">Conflict</span>':'')+
         '</div>'+
         '<div class="qtxt">'+esc(it.question)+'</div>'+
-        '<div class="ansbox"><b>Answer:</b> '+
-        (it.answer_letter?'<b>'+(it.answer_letter||'').toUpperCase()+'</b> ('+esc(it.answer_source||'file')+')':'<span style="color:#ef4444">Unanswered</span>')+
-        (it.answer_evidence?'<div class="evbox">'+esc(it.answer_evidence)+'</div>':'')+
-        '</div>'+
+        optsH+ansH+
         '<div class="srcchips">'+(it.appears_in||[]).map(function(s){return'<span class="sc">'+esc(s)+'</span>';}).join('')+'</div>'+
         '</div>';
     }).join('');
@@ -820,7 +875,6 @@ function openEdit(idx){
 
   G('eq-txt').value=q.question||'';
 
-  /* Build smart answer letter dropdown from question's options */
   var opts=q.options||{};
   var okeys=Object.keys(opts).sort();
   var ansOpts='<option value="">— no answer —</option>';
@@ -834,18 +888,13 @@ function openEdit(idx){
     ansOpts+='<option value="f"'+(q.answer_letter==='f'?' selected':'')+'>F — False</option>';
     G('eq-opt-hint').textContent='(True / False)';
   } else {
-    /* Free text via input fallback */
     ansOpts+='<option value="'+(q.answer_letter||'')+'"'+(q.answer_letter?' selected':'')+'>'+(q.answer_letter||'(type below)')+'</option>';
     G('eq-opt-hint').textContent='(write directly in field)';
   }
   G('eq-ans').innerHTML=ansOpts;
 
-  /* Question type */
   G('eq-qtype').value=q.qtype||'mcq';
-
-  /* Lesson */
   G('eq-lesson').value=q.lesson||'';
-
   G('eq-st').value=q.answer_status||'not_shown';
   G('eq-ev').value=q.answer_evidence||'';
   G('edit-mbk').classList.add('on');
