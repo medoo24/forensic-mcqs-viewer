@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Forensic MCQs Pipeline Explorer</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success-bg: #ecfdf5;
+      --success-text: #065f46;
+      --success-border: #a7f3d0;
+      --warning-bg: #fffbeb;
+      --warning-text: #92400e;
+      --warning-border: #fde68a;
+      --danger-bg: #fef2f2;
+      --danger-text: #991b1b;
+      --danger-border: #fecaca;
+      --badge-bg: #f1f5f9;
+      --badge-text: #475569;
+      --header-bg: #ffffff;
+      --accent: #3b82f6;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --success-bg: #064e3b;
+      --success-text: #a7f3d0;
+      --success-border: #047857;
+      --warning-bg: #78350f;
+      --warning-text: #fde68a;
+      --warning-border: #b45309;
+      --danger-bg: #7f1d1d;
+      --danger-text: #fecaca;
+      --danger-border: #b91c1c;
+      --badge-bg: #334155;
+      --badge-text: #cbd5e1;
+      --header-bg: #1e293b;
+      --accent: #60a5fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 10px 20px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .kpi-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .kpi-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 9999px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      border: 1px solid var(--card-border);
+    }
+    .kpi-pill.green { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
+    .kpi-pill.amber { background: var(--warning-bg); color: var(--warning-text); border-color: var(--warning-border); }
+    .kpi-pill.red { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
+    .kpi-pill.blue { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+    [data-theme="dark"] .kpi-pill.blue { background: #1e3a8a; color: #bfdbfe; border-color: #1d4ed8; }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 8px;
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .nav-tab:hover { background: var(--badge-bg); color: var(--text); }
+    .nav-tab.active { background: var(--primary); color: #ffffff; }
+
+    main {
+      padding: 16px 20px;
+      max-width: 1700px;
+      margin: 0 auto;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    button, select, input {
+      font-family: inherit;
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text);
+      outline: none;
+    }
+    button { cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    button.primary:hover { background: var(--primary-hover); }
+    button.success { background: #059669; color: #fff; border-color: #059669; }
+    button.success:hover { background: #047857; }
+
+    /* Controls Bar */
+    .compare-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      background: var(--card-bg);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 12px;
+    }
+
+    .book-select { flex: 1; min-width: 260px; font-weight: 600; }
+    .lesson-select { min-width: 200px; }
+
+    .page-nav { display: flex; align-items: center; gap: 6px; }
+
+    .page-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      max-height: 70px;
+      overflow-y: auto;
+      background: var(--card-bg);
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 12px;
+    }
+
+    .page-chip {
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid var(--card-border);
+      background: var(--badge-bg);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .page-chip.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .page-chip.has-q { color: var(--text); font-weight: 700; }
+
+    .compare-container {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 1080px) {
+      .compare-container { grid-template-columns: 1fr; }
+    }
+
+    .pane-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .pane-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--card-border);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    /* Pan & Zoom Navigation Container */
+    .viewer-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+      background: var(--badge-bg);
+      padding: 6px 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .nav-btn-group {
+      display: inline-flex;
+      gap: 2px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 2px;
+    }
+    .nav-btn-group button {
+      border: none;
+      background: transparent;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+    .nav-btn-group button:hover {
+      background: var(--badge-bg);
+    }
+
+    .img-viewport {
+      position: relative;
+      background: #334155;
+      border-radius: 6px;
+      overflow: hidden;
+      height: 680px;
+      cursor: grab;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .img-viewport:active { cursor: grabbing; }
+
+    .img-canvas {
+      position: absolute;
+      transform-origin: center center;
+      transition: transform 0.05s ease-out;
+      user-select: none;
+    }
+
+    .img-canvas img {
+      max-width: none;
+      display: block;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .q-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .q-card-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      text-transform: uppercase;
+    }
+    .badge.green { background: var(--success-bg); color: var(--success-text); }
+    .badge.amber { background: var(--warning-bg); color: var(--warning-text); }
+    .badge.red { background: var(--danger-bg); color: var(--danger-text); }
+    .badge.blue { background: #eff6ff; color: #1d4ed8; }
+
+    .q-text {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .options-list {
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .option-item {
+      padding: 5px 10px;
+      border-radius: 5px;
+      border: 1px solid var(--card-border);
+      font-size: 13px;
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+      background: var(--card-bg);
+    }
+    .option-item.correct {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border-color: var(--success-border);
+      font-weight: 600;
+    }
+
+    .answer-box {
+      background: var(--badge-bg);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .evidence-box {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-top: 3px;
+    }
+
+    .q-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--card-border);
+      font-size: 11px;
+    }
+
+    /* Tab 2: Clusters */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+      background: var(--card-bg);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .cluster-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .cluster-card.has-conflict { border-left: 4px solid #ef4444; }
+
+    .cluster-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .sources-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 8px 0;
+    }
+    .source-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+    }
+    [data-theme="dark"] .source-chip {
+      background: #1e3a8a;
+      color: #bfdbfe;
+      border-color: #1d4ed8;
+    }
+
+    .members-accordion {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .members-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .member-box {
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 12px;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: var(--card-bg);
+      border-radius: 8px;
+      width: 100%;
+      max-width: 580px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+
+    /* Guide Tab */
+    .guide-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .guide-section h3 { margin-bottom: 10px; color: var(--primary); }
+    .guide-section p { margin-bottom: 10px; }
+    .guide-section code {
+      background: var(--badge-bg);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .guide-section pre {
+      background: var(--badge-bg);
+      padding: 10px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="brand">
+      <span>🩺</span>
+      <span>Forensic MCQ Pipeline Explorer</span>
+    </div>
+    <div class="kpi-row" id="kpis">
+      <span class="kpi-pill blue" id="kpi-books">📚 24 Books</span>
+      <span class="kpi-pill" id="kpi-total">📝 5,585 Deduped MCQs</span>
+      <span class="kpi-pill" id="kpi-clusters">🔀 2,129 Clusters</span>
+      <span class="kpi-pill green" id="kpi-marked">✅ 1,706 Marked</span>
+      <span class="kpi-pill green" id="kpi-key">🔑 2,662 Key-Linked</span>
+      <span class="kpi-pill amber" id="kpi-unanswered">❓ 1,355 Unanswered</span>
+      <span class="kpi-pill red" id="kpi-conflicts">⚠️ 464 Conflicts</span>
+    </div>
+    <div class="header-actions">
+      <button id="export-edits-btn" title="Download your review edits JSON to share">📥 Export Edits</button>
+      <button id="import-edits-btn" title="Import edits shared by another collaborator">📤 Import Edits</button>
+      <input type="file" id="import-file-input" accept=".json" style="display: none;">
+      <button id="theme-btn">🌓 Theme</button>
+    </div>
+  </div>
+
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="tab-compare">📖 1. Extracted Content vs Original Files</button>
+    <button class="nav-tab" data-tab="tab-clusters">🔀 2. Similar Questions Merged (Dedup Clusters)</button>
+    <button class="nav-tab" data-tab="tab-questions">📋 3. Master Question Bank (5,585)</button>
+    <button class="nav-tab" data-tab="tab-guide">📘 4. File Architecture & Online Sharing Guide</button>
+  </nav>
+</header>
+
+<main>
+  <!-- TAB 1: COMPARE ORIGINAL VS EXTRACTED -->
+  <section id="tab-compare" class="tab-content active">
+    <div class="compare-controls">
+      <label><b>Book:</b></label>
+      <select id="book-select" class="book-select"></select>
+
+      <label><b>Lesson:</b></label>
+      <select id="compare-lesson-select" class="lesson-select">
+        <option value="all">All Lessons (20)</option>
+      </select>
+
+      <div class="page-nav">
+        <button id="prev-page-btn">&larr; Prev</button>
+        <label>Page:</label>
+        <input type="number" id="page-input" min="1" value="1" style="width: 65px;">
+        <span id="page-total">/ 1</span>
+        <button id="next-page-btn">Next &rarr;</button>
+      </div>
+    </div>
+
+    <div class="page-chips" id="page-chips"></div>
+
+    <div class="compare-container">
+      <!-- LEFT: ORIGINAL PAGE IMAGE WITH SPECIAL ZOOM & PAN CONTROLS -->
+      <div class="pane-card">
+        <div class="pane-header">
+          <span>Original PDF Page</span>
+          <span id="img-indicator" style="font-size: 12px; color: var(--text-muted);">Page 1</span>
+        </div>
+
+        <!-- SPECIAL NAVIGATION TOOLBAR -->
+        <div class="viewer-toolbar">
+          <div class="nav-btn-group" title="Zoom In / Out">
+            <button id="zoom-in-btn">🔍+ In</button>
+            <button id="zoom-out-btn">🔍- Out</button>
+            <button id="zoom-fit-btn">Fit</button>
+            <button id="zoom-reset-btn">100%</button>
+          </div>
+
+          <div class="nav-btn-group" style="margin-left: 6px;" title="Pan Up, Down, Left, Right">
+            <button id="pan-up-btn">⬆️ Up</button>
+            <button id="pan-down-btn">⬇️ Down</button>
+            <button id="pan-left-btn">⬅️ Left</button>
+            <button id="pan-right-btn">➡️ Right</button>
+            <button id="pan-center-btn">🎯 Center</button>
+          </div>
+
+          <span id="zoom-label" style="font-size: 11px; font-weight: 700; margin-left: 6px;">100%</span>
+          <button id="open-img-btn" style="margin-left: auto;" title="Open original image in new tab">↗ Full Size</button>
+        </div>
+
+        <div class="img-viewport" id="viewport">
+          <div class="img-canvas" id="canvas">
+            <img id="page-img" src="" alt="PDF page image loading..." onerror="this.alt='Image not available for this page'">
+          </div>
+        </div>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+          💡 <i>Tip: Use buttons above or click & drag with mouse to pan smoothly around the page at any zoom level.</i>
+        </p>
+      </div>
+
+      <!-- RIGHT: EXTRACTED CONTENT -->
+      <div class="pane-card">
+        <div class="pane-header">
+          <span>Extracted Questions on this Page (<span id="q-count-badge">0</span>)</span>
+          <button class="primary" id="refresh-page-btn">🔄 Refresh</button>
+        </div>
+        <div id="page-questions-container">
+          <p style="color: var(--text-muted); padding: 20px;">Loading questions...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: DEDUP CLUSTERS -->
+  <section id="tab-clusters" class="tab-content">
+    <div class="filter-bar">
+      <input type="text" id="cluster-search" placeholder="Search question stem or book name..." style="flex: 1; min-width: 240px;">
+      
+      <select id="cluster-lesson-filter" style="min-width: 180px;">
+        <option value="all">All Lessons</option>
+      </select>
+
+      <select id="cluster-filter">
+        <option value="all">All Duplicate Clusters (2,129)</option>
+        <option value="conflict">Conflicts Only (Differing Answers)</option>
+        <option value="reps3">Found in 3+ Books</option>
+        <option value="reps5">Found in 5+ Books</option>
+      </select>
+
+      <button class="primary" id="search-clusters-btn">Filter</button>
+      <span id="cluster-total-count" style="font-weight: 600; font-size: 13px;"></span>
+    </div>
+
+    <div id="clusters-container">
+      <p style="color: var(--text-muted);">Loading duplicate clusters...</p>
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+      <button id="cluster-prev-btn">&larr; Previous</button>
+      <span id="cluster-page-num" style="font-weight: 600; align-self: center;">Page 1</span>
+      <button id="cluster-next-btn">Next &rarr;</button>
+    </div>
+  </section>
+
+  <!-- TAB 3: MASTER QUESTION BANK -->
+  <section id="tab-questions" class="tab-content">
+    <div class="filter-bar">
+      <input type="text" id="qbank-search" placeholder="Search question text..." style="flex: 1; min-width: 220px;">
+      
+      <select id="qbank-lesson-filter" style="min-width: 180px;">
+        <option value="all">All Lessons</option>
+      </select>
+
+      <select id="qbank-status">
+        <option value="all">All Answer Statuses</option>
+        <option value="marked">Answered by Mark</option>
+        <option value="key">Answered by Linked Key</option>
+        <option value="unanswered">Unanswered (Needs AI)</option>
+        <option value="conflict">Conflicts</option>
+      </select>
+
+      <select id="qbank-type">
+        <option value="all">All Question Types</option>
+        <option value="mcq">MCQ</option>
+        <option value="essay">Essay / Written</option>
+        <option value="case">Case</option>
+        <option value="true_false">True / False</option>
+        <option value="matching">Matching</option>
+      </select>
+
+      <button class="primary" id="search-qbank-btn">Search</button>
+      <span id="qbank-total-count" style="font-weight: 600; font-size: 13px;"></span>
+    </div>
+
+    <div id="qbank-container">
+      <p style="color: var(--text-muted);">Loading questions...</p>
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+      <button id="qbank-prev-btn">&larr; Previous</button>
+      <span id="qbank-page-num" style="font-weight: 600; align-self: center;">Page 1</span>
+      <button id="qbank-next-btn">Next &rarr;</button>
+    </div>
+  </section>
+
+  <!-- TAB 4: FILE ARCHITECTURE & GUIDE -->
+  <section id="tab-guide" class="tab-content">
+    <div class="guide-section">
+      <h3>🌐 How Online Sharing & GitHub Hosting Works</h3>
+      <p>We designed the online version to be <b>lightweight (under 15 MB)</b> so collaborators can open it on mobile phones without data or lag.</p>
+      
+      <p><b>Collaborative Workflow:</b></p>
+      <ol style="margin-left: 20px; line-height: 1.8;">
+        <li><b>Online View:</b> Collaborators open the GitHub Pages link on their phones or laptops.</li>
+        <li><b>Make Edits:</b> They review questions, click <b>"✏️ Edit"</b>, and change any wrong answer letters, text, or notes.</li>
+        <li><b>Export Edits:</b> When done, they click the <b>"📥 Export Edits"</b> button in the top navbar. It downloads a lightweight <code>forensic_edits_*.json</code> file.</li>
+        <li><b>Send to You:</b> They send you this JSON file (via WhatsApp, Telegram, or Email).</li>
+        <li><b>One-Click Import:</b> You open your local visualizer, click <b>"📤 Import Edits"</b>, select their file, and it automatically updates your dataset after you verify!</li>
+      </ol>
+    </div>
+
+    <div class="guide-section">
+      <h3>📁 Where Your Files Live on Disk</h3>
+      <pre>
+D:\my work\ANTI_1\Forensic\MCQs\
+├── *.pdf                                  # The 24 original forensic PDF textbooks
+├── pipeline_out/
+│   ├── chunks_full/                       # 1. RAW GEMINI EXTRACTIONS (4-page chunks)
+│   ├── linked/                            # 2. KEY-LINKED QUESTIONS PER BOOK
+│   ├── df_final.pkl                       # 3. MASTER DEDUPLICATED DATASET (5,585 MCQs)
+│   ├── Filtered_Toxo.xlsx                 # 4. EXCLUDED TOXICOLOGY QUESTIONS (4,052 MCQs)
+│   └── cache_judge/                       # 5. EMBEDDING DEDUP CACHE (100% complete)
+└── visualizer/                            # 6. PEACEFUL VISUALIZER (Zero external deps)
+    ├── data/
+    │   ├── books.json                     # Metadata and page counts for all 24 books
+    │   ├── clusters.json                  # All 2,129 merged duplicate clusters
+    │   ├── questions_summary.json         # Master 5,585 questions bank
+    │   └── by_book/*.json                 # Per-book question indices for fast lookup
+    ├── server.py                          # Lightweight Python API & Image server
+    └── index.html                         # This interactive visualizer app
+      </pre>
+    </div>
+  </section>
+</main>
+
+<!-- EDIT MODAL -->
+<div class="modal-backdrop" id="edit-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>✏️ Edit Question</span>
+      <button id="modal-close-btn">&times;</button>
+    </div>
+    <form id="edit-form">
+      <div class="form-group">
+        <label>Question Text</label>
+        <textarea id="edit-q-text" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Correct Answer Letter</label>
+        <input type="text" id="edit-q-ans" placeholder="e.g. A, B, C, D, or T/F">
+      </div>
+      <div class="form-group">
+        <label>Lesson</label>
+        <input type="text" id="edit-q-lesson" placeholder="Lesson category">
+      </div>
+      <div class="form-group">
+        <label>Answer Status</label>
+        <select id="edit-q-status">
+          <option value="shown_in_file">shown_in_file</option>
+          <option value="not_shown">not_shown</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Answer Evidence Quote</label>
+        <input type="text" id="edit-q-ev" placeholder="Quote from file or key">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+        <button type="button" id="modal-cancel-btn">Cancel</button>
+        <button type="submit" class="primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+// Automatic fallback for Static Hosting (e.g. GitHub Pages)
+const isStaticHost = window.location.protocol === 'file:' || window.location.hostname.includes('github.io');
+let staticClusters = null;
+let staticQuestions = null;
+
+if (isStaticHost) {
+  const origFetch = window.fetch;
+  window.fetch = async function(url, opts) {
+    const urlStr = String(url);
+    if (urlStr.startsWith('/api/stats')) return origFetch('data/stats.json');
+    if (urlStr.startsWith('/api/books')) return origFetch('data/books.json');
+    if (urlStr.startsWith('/api/lessons')) {
+      const res = await origFetch('data/questions_summary.json');
+      const qs = await res.json();
+      const lessons = Array.from(new Set(qs.map(q => (q.lesson || '').trim()).filter(Boolean))).sort();
+      return new Response(JSON.stringify(lessons), { headers: {'Content-Type': 'application/json'} });
+    }
+    if (urlStr.startsWith('/api/book')) {
+      const u = new URL(url, window.location.href);
+      const slug = u.searchParams.get('slug');
+      return origFetch(data/by_book/.json);
+    }
+    if (urlStr.startsWith('/api/clusters')) {
+      if (!staticClusters) {
+        const res = await origFetch('data/clusters.json');
+        staticClusters = await res.json();
+      }
+      const u = new URL(url, window.location.href);
+      const qText = (u.searchParams.get('q') || '').toLowerCase().trim();
+      const fType = u.searchParams.get('filter') || 'all';
+      const lessonF = u.searchParams.get('lesson') || 'all';
+      const page = parseInt(u.searchParams.get('page') || '1');
+      const limit = parseInt(u.searchParams.get('limit') || '20');
+
+      let filtered = staticClusters.filter(c => {
+        if (fType === 'conflict' && !c.has_conflict) return false;
+        if (fType === 'reps3' && (c.repeat_count || 0) < 3) return false;
+        if (fType === 'reps5' && (c.repeat_count || 0) < 5) return false;
+        if (lessonF !== 'all' && c.canonical_lesson !== lessonF) return false;
+        if (qText) {
+          const qs = (c.canonical_question || '').toLowerCase();
+          const bs = (c.appears_in || []).join(' ').toLowerCase();
+          if (!qs.includes(qText) && !bs.includes(qText)) return false;
+        }
+        return true;
+      });
+      const start = (page - 1) * limit;
+      return new Response(JSON.stringify({
+        total: filtered.length,
+        page: page,
+        limit: limit,
+        clusters: filtered.slice(start, start + limit)
+      }), { headers: {'Content-Type': 'application/json'} });
+    }
+    if (urlStr.startsWith('/api/questions')) {
+      if (!staticQuestions) {
+        const res = await origFetch('data/questions_summary.json');
+        staticQuestions = await res.json();
+      }
+      const u = new URL(url, window.location.href);
+      const qText = (u.searchParams.get('q') || '').toLowerCase().trim();
+      const statusF = u.searchParams.get('status') || 'all';
+      const qtypeF = u.searchParams.get('qtype') || 'all';
+      const lessonF = u.searchParams.get('lesson') || 'all';
+      const page = parseInt(u.searchParams.get('page') || '1');
+      const limit = parseInt(u.searchParams.get('limit') || '30');
+
+      let filtered = staticQuestions.filter(item => {
+        if (statusF === 'marked' && (item.answer_status !== 'shown_in_file' || item.answer_source === 'from_key')) return false;
+        if (statusF === 'key' && item.answer_source !== 'from_key') return false;
+        if (statusF === 'unanswered' && String(item.answer_letter || '').trim()) return false;
+        if (statusF === 'conflict' && !item.conflict) return false;
+        if (qtypeF !== 'all' && item.qtype !== qtypeF) return false;
+        if (lessonF !== 'all' && item.lesson !== lessonF) return false;
+        if (qText && !(item.question || '').toLowerCase().includes(qText)) return false;
+        return true;
+      });
+      const start = (page - 1) * limit;
+      return new Response(JSON.stringify({
+        total: filtered.length,
+        page: page,
+        limit: limit,
+        questions: filtered.slice(start, start + limit)
+      }), { headers: {'Content-Type': 'application/json'} });
+    }
+    return origFetch(url, opts);
+  };
+}
+</script>
+
+<script>
+// State
+let allBooks = [];
+let allLessons = [];
+let currentBook = null;
+let currentBookQuestions = [];
+let currentPage = 1;
+let editTarget = null;
+
+// Local Review Edits for Export/Import
+const LOCAL_EDITS_KEY = "forensic_local_edits_v1";
+function getLocalEdits() {
+  try { return JSON.parse(localStorage.getItem(LOCAL_EDITS_KEY) || "[]"); } catch(e) { return []; }
+}
+function addLocalEdit(edit) {
+  const edits = getLocalEdits().filter(e => !(e.book_slug === edit.book_slug && e.orig_question === edit.orig_question));
+  edits.push(edit);
+  localStorage.setItem(LOCAL_EDITS_KEY, JSON.stringify(edits));
+}
+
+// Special Pan & Zoom State
+let zoom = 1.0;
+let panX = 0;
+let panY = 0;
+let isDragging = false;
+let startX, startY;
+
+const canvas = document.getElementById("canvas");
+const viewport = document.getElementById("viewport");
+const zoomLabel = document.getElementById("zoom-label");
+
+function updateTransform() {
+  canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+  zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+}
+
+// Navigation Buttons for Pan & Zoom
+document.getElementById("zoom-in-btn").onclick = () => { zoom = Math.min(3.5, zoom + 0.25); updateTransform(); };
+document.getElementById("zoom-out-btn").onclick = () => { zoom = Math.max(0.4, zoom - 0.25); updateTransform(); };
+document.getElementById("zoom-fit-btn").onclick = () => { zoom = 0.85; panX = 0; panY = 0; updateTransform(); };
+document.getElementById("zoom-reset-btn").onclick = () => { zoom = 1.0; panX = 0; panY = 0; updateTransform(); };
+
+document.getElementById("pan-up-btn").onclick = () => { panY += 120; updateTransform(); };
+document.getElementById("pan-down-btn").onclick = () => { panY -= 120; updateTransform(); };
+document.getElementById("pan-left-btn").onclick = () => { panX += 120; updateTransform(); };
+document.getElementById("pan-right-btn").onclick = () => { panX -= 120; updateTransform(); };
+document.getElementById("pan-center-btn").onclick = () => { panX = 0; panY = 0; updateTransform(); };
+
+// Mouse Pan Dragging
+viewport.addEventListener("mousedown", (e) => {
+  if (e.button !== 0) return;
+  isDragging = true;
+  startX = e.clientX - panX;
+  startY = e.clientY - panY;
+});
+window.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  panX = e.clientX - startX;
+  panY = e.clientY - startY;
+  updateTransform();
+});
+window.addEventListener("mouseup", () => { isDragging = false; });
+
+// Touch Dragging for Mobile
+viewport.addEventListener("touchstart", (e) => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    startX = e.touches[0].clientX - panX;
+    startY = e.touches[0].clientY - panY;
+  }
+});
+window.addEventListener("touchmove", (e) => {
+  if (!isDragging || e.touches.length !== 1) return;
+  panX = e.touches[0].clientX - startX;
+  panY = e.touches[0].clientY - startY;
+  updateTransform();
+});
+window.addEventListener("touchend", () => { isDragging = false; });
+
+// Tab Switching
+document.querySelectorAll(".nav-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    tab.classList.add("active");
+    const target = tab.dataset.tab;
+    document.getElementById(target).classList.add("active");
+    if (target === "tab-clusters" && !window.clustersLoaded) loadClusters();
+    if (target === "tab-questions" && !window.qbankLoaded) loadQuestions();
+  });
+});
+
+// Theme Toggle
+const themeBtn = document.getElementById("theme-btn");
+themeBtn.onclick = () => {
+  const current = document.documentElement.getAttribute("data-theme") || "light";
+  const next = current === "light" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", next);
+};
+
+// Initialize
+async function init() {
+  try {
+    const statsRes = await fetch("/api/stats");
+    const stats = await statsRes.json();
+    document.getElementById("kpi-books").textContent = `📚 ${stats.books_count || 24} Books`;
+    document.getElementById("kpi-total").textContent = `📝 ${stats.total_deduped_forensic?.toLocaleString()} Deduped MCQs`;
+    document.getElementById("kpi-clusters").textContent = `🔀 ${stats.duplicate_clusters?.toLocaleString()} Clusters`;
+    document.getElementById("kpi-marked").textContent = `✅ ${stats.answered_by_mark?.toLocaleString()} Marked`;
+    document.getElementById("kpi-key").textContent = `🔑 ${stats.answered_by_key?.toLocaleString()} Key-Linked`;
+    document.getElementById("kpi-unanswered").textContent = `❓ ${stats.unanswered?.toLocaleString()} Unanswered`;
+    document.getElementById("kpi-conflicts").textContent = `⚠️ ${stats.conflicts?.toLocaleString()} Conflicts`;
+
+    const lessonsRes = await fetch("/api/lessons");
+    allLessons = await lessonsRes.json();
+    populateLessonsDropdowns();
+
+    const booksRes = await fetch("/api/books");
+    allBooks = await booksRes.json();
+    const sel = document.getElementById("book-select");
+    sel.innerHTML = allBooks.map(b => `<option value="${b.slug}">${b.name} (${b.total_questions} Qs, p.1-${b.max_page})</option>`).join("");
+    
+    sel.onchange = () => selectBook(sel.value);
+    if (allBooks.length > 0) selectBook(allBooks[0].slug);
+  } catch (e) {
+    console.error("Init error:", e);
+  }
+}
+
+function populateLessonsDropdowns() {
+  const lessonOpts = `<option value="all">All Lessons (${allLessons.length})</option>` +
+    allLessons.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join("");
+  
+  document.getElementById("compare-lesson-select").innerHTML = lessonOpts;
+  document.getElementById("cluster-lesson-filter").innerHTML = `<option value="all">All Lessons</option>` + allLessons.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join("");
+  document.getElementById("qbank-lesson-filter").innerHTML = `<option value="all">All Lessons</option>` + allLessons.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join("");
+
+  document.getElementById("compare-lesson-select").onchange = renderCurrentPage;
+}
+
+async function selectBook(slug) {
+  currentBook = allBooks.find(b => b.slug === slug);
+  if (!currentBook) return;
+  currentPage = 1;
+  panX = 0; panY = 0; zoom = 1.0; updateTransform();
+  document.getElementById("page-total").textContent = `/ ${currentBook.max_page}`;
+  document.getElementById("page-input").max = currentBook.max_page;
+
+  await loadBookQuestions(slug);
+  renderPageChips();
+  renderCurrentPage();
+}
+
+async function loadBookQuestions(slug) {
+  try {
+    const res = await fetch(`/api/book?slug=${slug}`);
+    currentBookQuestions = await res.json();
+  } catch (e) {
+    currentBookQuestions = [];
+  }
+}
+
+function renderPageChips() {
+  const container = document.getElementById("page-chips");
+  let html = "";
+  for (let p = 1; p <= currentBook.max_page; p++) {
+    const hasQ = currentBookQuestions.some(q => q.source_page === p);
+    html += `<span class="page-chip ${p === currentPage ? 'active' : ''} ${hasQ ? 'has-q' : ''}" data-p="${p}">p.${p}</span>`;
+  }
+  container.innerHTML = html;
+  container.querySelectorAll(".page-chip").forEach(chip => {
+    chip.onclick = () => {
+      currentPage = parseInt(chip.dataset.p);
+      renderCurrentPage();
+    };
+  });
+}
+
+function renderCurrentPage() {
+  document.getElementById("page-input").value = currentPage;
+  document.getElementById("img-indicator").textContent = `Page ${currentPage} of ${currentBook.max_page}`;
+
+  // Update Page Image
+  const imgUrl = `/api/page_image?slug=${currentBook.slug}&page=${currentPage}`;
+  const img = document.getElementById("page-img");
+  img.src = imgUrl;
+
+  // Filter by lesson if selected
+  const selectedLesson = document.getElementById("compare-lesson-select").value;
+  let pageQs = currentBookQuestions.filter(q => q.source_page === currentPage);
+  if (selectedLesson !== "all") {
+    pageQs = pageQs.filter(q => (q.lesson || "").trim() === selectedLesson);
+  }
+
+  document.getElementById("q-count-badge").textContent = pageQs.length;
+
+  const qContainer = document.getElementById("page-questions-container");
+  if (pageQs.length === 0) {
+    qContainer.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-muted);">
+      No questions match filters on page ${currentPage}.
+    </div>`;
+  } else {
+    qContainer.innerHTML = pageQs.map((q, idx) => renderQuestionCard(q, idx)).join("");
+  }
+
+  // Update chips highlight
+  document.querySelectorAll(".page-chip").forEach(c => {
+    c.classList.toggle("active", parseInt(c.dataset.p) === currentPage);
+  });
+}
+
+function renderQuestionCard(q, idx) {
+  const opts = q.options || {};
+  const ansLetter = (q.answer_letter || "").trim().toUpperCase();
+  const isKey = q.answer_source === "from_key";
+  const hasAns = Boolean(ansLetter);
+
+  let optsHtml = "";
+  if (Object.keys(opts).length > 0) {
+    optsHtml = `<div class="options-list">` + Object.keys(opts).sort().map(k => {
+      const isCorrect = k.toUpperCase() === ansLetter;
+      return `<div class="option-item ${isCorrect ? 'correct' : ''}">
+        <b>${k}.</b> <span>${escapeHtml(opts[k])}</span> ${isCorrect ? '✓' : ''}
+      </div>`;
+    }).join("") + `</div>`;
+  }
+
+  return `
+    <div class="q-card" data-idx="${idx}">
+      <div class="q-card-header">
+        ${q.q_number ? `<span class="badge">#${q.q_number}</span>` : ''}
+        <span class="badge ${q.qtype === 'mcq' ? 'blue' : ''}">${q.qtype || 'MCQ'}</span>
+        ${q.lesson ? `<span class="badge">${q.lesson}</span>` : ''}
+        ${hasAns ? `<span class="badge ${isKey ? 'blue' : 'green'}">${isKey ? 'From Key' : 'Marked'}</span>` : '<span class="badge amber">No Answer</span>'}
+        ${q.conflict ? `<span class="badge red">Conflict</span>` : ''}
+        <button class="primary" style="margin-left: auto; padding: 2px 7px; font-size: 11px;" onclick="openEditModal(${idx})">✏️ Edit</button>
+      </div>
+
+      <div class="q-text">${escapeHtml(q.question)}</div>
+      ${optsHtml}
+
+      <div class="answer-box">
+        <b>Answer:</b> ${q.answer_letter ? `<b>${q.answer_letter.toUpperCase()}</b>` : '<span style="color: #ef4444;">None</span>'}
+        ${q.answer_evidence ? `<div class="evidence-box">Evidence: "${escapeHtml(q.answer_evidence)}"</div>` : ''}
+        ${q.explanation ? `<div style="font-size: 12px; margin-top: 3px;">Explanation: ${escapeHtml(q.explanation)}</div>` : ''}
+      </div>
+
+      <div class="q-card-footer">
+        <span style="color: var(--text-muted);">${currentBook.name} (p.${q.source_page})</span>
+        <details>
+          <summary style="cursor: pointer; color: var(--primary);">Raw JSON</summary>
+          <pre style="font-size: 11px; margin-top: 6px; max-height: 140px; overflow: auto; background: var(--badge-bg); padding: 8px; border-radius: 4px;">${escapeHtml(JSON.stringify(q, null, 2))}</pre>
+        </details>
+      </div>
+    </div>
+  `;
+}
+
+// Page controls
+document.getElementById("prev-page-btn").onclick = () => { if (currentPage > 1) { currentPage--; renderCurrentPage(); } };
+document.getElementById("next-page-btn").onclick = () => { if (currentPage < currentBook.max_page) { currentPage++; renderCurrentPage(); } };
+document.getElementById("page-input").onchange = (e) => {
+  const val = parseInt(e.target.value);
+  if (val >= 1 && val <= currentBook.max_page) { currentPage = val; renderCurrentPage(); }
+};
+document.getElementById("open-img-btn").onclick = () => window.open(document.getElementById("page-img").src, "_blank");
+document.getElementById("refresh-page-btn").onclick = async () => {
+  await loadBookQuestions(currentBook.slug);
+  renderCurrentPage();
+};
+
+// Keyboard navigation
+window.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+  if (e.key === "ArrowLeft") document.getElementById("prev-page-btn").click();
+  if (e.key === "ArrowRight") document.getElementById("next-page-btn").click();
+});
+
+// TAB 2: CLUSTERS
+let clusterPage = 1;
+async function loadClusters() {
+  window.clustersLoaded = true;
+  const q = document.getElementById("cluster-search").value;
+  const filter = document.getElementById("cluster-filter").value;
+  const lesson = document.getElementById("cluster-lesson-filter").value;
+
+  const res = await fetch(`/api/clusters?page=${clusterPage}&limit=20&q=${encodeURIComponent(q)}&filter=${filter}&lesson=${encodeURIComponent(lesson)}`);
+  const data = await res.json();
+
+  document.getElementById("cluster-total-count").textContent = `Showing ${data.clusters.length} of ${data.total} clusters`;
+  document.getElementById("cluster-page-num").textContent = `Page ${clusterPage}`;
+
+  const container = document.getElementById("clusters-container");
+  if (data.clusters.length === 0) {
+    container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-muted);">No clusters match the search criteria.</div>`;
+  } else {
+    container.innerHTML = data.clusters.map(c => renderClusterCard(c)).join("");
+  }
+}
+
+function renderClusterCard(c) {
+  const members = c.members || [];
+  return `
+    <div class="cluster-card ${c.has_conflict ? 'has-conflict' : ''}">
+      <div class="cluster-header">
+        <div>
+          <span class="badge blue">Cluster #${c.cluster_id}</span>
+          <span class="badge ${c.repeat_count >= 3 ? 'green' : ''}">Repeated in ${c.repeat_count} Books</span>
+          ${c.has_conflict ? '<span class="badge red">Disagreement / Conflict</span>' : ''}
+          ${c.canonical_qtype ? `<span class="badge">${c.canonical_qtype}</span>` : ''}
+          ${c.canonical_lesson ? `<span class="badge">${c.canonical_lesson}</span>` : ''}
+        </div>
+        <div style="font-weight: 700; color: var(--primary);">
+          Consolidated Answer: ${c.canonical_answer ? c.canonical_answer.toUpperCase() : 'None'}
+        </div>
+      </div>
+
+      <div class="q-text">${escapeHtml(c.canonical_question)}</div>
+
+      <div class="sources-chips">
+        ${(c.appears_in || []).map(s => `<span class="source-chip">${escapeHtml(s)}</span>`).join("")}
+      </div>
+
+      <details class="members-accordion">
+        <summary style="cursor: pointer; font-weight: 600; color: var(--primary);">
+          🔍 Compare All ${members.length} Duplicate Occurrences in Source Books
+        </summary>
+        <div class="members-grid">
+          ${members.map(m => `
+            <div class="member-box">
+              <div style="font-weight: 700; margin-bottom: 5px; color: var(--accent);">
+                ${m.source_file} (p.${m.source_page})
+              </div>
+              <div style="margin-bottom: 5px;"><b>Text:</b> ${escapeHtml(m.question.substring(0, 100))}...</div>
+              <div style="margin-bottom: 5px;">
+                <b>Answer:</b> ${m.answer_letter ? `<span class="badge green">${m.answer_letter.toUpperCase()}</span>` : '<span class="badge amber">None</span>'}
+                ${m.answer_source ? `<span style="font-size: 11px; color: var(--text-muted);">(${m.answer_source})</span>` : ''}
+              </div>
+              ${m.options ? `<div style="font-size: 11px; color: var(--text-muted);">${Object.keys(m.options).length} options</div>` : ''}
+            </div>
+          `).join("")}
+        </div>
+      </details>
+    </div>
+  `;
+}
+
+document.getElementById("search-clusters-btn").onclick = () => { clusterPage = 1; loadClusters(); };
+document.getElementById("cluster-prev-btn").onclick = () => { if (clusterPage > 1) { clusterPage--; loadClusters(); } };
+document.getElementById("cluster-next-btn").onclick = () => { clusterPage++; loadClusters(); };
+
+// TAB 3: QUESTIONS
+let qbankPage = 1;
+async function loadQuestions() {
+  window.qbankLoaded = true;
+  const q = document.getElementById("qbank-search").value;
+  const status = document.getElementById("qbank-status").value;
+  const qtype = document.getElementById("qbank-type").value;
+  const lesson = document.getElementById("qbank-lesson-filter").value;
+
+  const res = await fetch(`/api/questions?page=${qbankPage}&limit=25&q=${encodeURIComponent(q)}&status=${status}&qtype=${qtype}&lesson=${encodeURIComponent(lesson)}`);
+  const data = await res.json();
+
+  document.getElementById("qbank-total-count").textContent = `Showing ${data.questions.length} of ${data.total} questions`;
+  document.getElementById("qbank-page-num").textContent = `Page ${qbankPage}`;
+
+  const container = document.getElementById("qbank-container");
+  container.innerHTML = data.questions.map(item => `
+    <div class="q-card">
+      <div class="q-card-header">
+        <span class="badge blue">#${item.id}</span>
+        <span class="badge">${item.qtype}</span>
+        ${item.lesson ? `<span class="badge">${item.lesson}</span>` : ''}
+        ${item.repeat_count > 1 ? `<span class="badge green">In ${item.repeat_count} Books</span>` : ''}
+        ${item.conflict ? `<span class="badge red">Conflict</span>` : ''}
+      </div>
+      <div class="q-text">${escapeHtml(item.question)}</div>
+      <div class="answer-box">
+        <b>Answer:</b> ${item.answer_letter ? `<b>${item.answer_letter.toUpperCase()}</b> (${item.answer_source || 'file'})` : '<span style="color: #ef4444;">Unanswered</span>'}
+        ${item.answer_evidence ? `<div class="evidence-box">${escapeHtml(item.answer_evidence)}</div>` : ''}
+      </div>
+      <div class="sources-chips">
+        ${(item.appears_in || []).map(s => `<span class="source-chip">${escapeHtml(s)}</span>`).join("")}
+      </div>
+    </div>
+  `).join("");
+}
+
+document.getElementById("search-qbank-btn").onclick = () => { qbankPage = 1; loadQuestions(); };
+document.getElementById("qbank-prev-btn").onclick = () => { if (qbankPage > 1) { qbankPage--; loadQuestions(); } };
+document.getElementById("qbank-next-btn").onclick = () => { qbankPage++; loadQuestions(); };
+
+// EDIT MODAL & LOCAL SAVING
+function openEditModal(idx) {
+  const selectedLesson = document.getElementById("compare-lesson-select").value;
+  let pageQs = currentBookQuestions.filter(q => q.source_page === currentPage);
+  if (selectedLesson !== "all") pageQs = pageQs.filter(q => (q.lesson || "").trim() === selectedLesson);
+  const q = pageQs[idx];
+  if (!q) return;
+
+  editTarget = { q, idx };
+  document.getElementById("edit-q-text").value = q.question || "";
+  document.getElementById("edit-q-ans").value = q.answer_letter || "";
+  document.getElementById("edit-q-lesson").value = q.lesson || "";
+  document.getElementById("edit-q-status").value = q.answer_status || "shown_in_file";
+  document.getElementById("edit-q-ev").value = q.answer_evidence || "";
+  document.getElementById("edit-modal").classList.add("open");
+}
+
+document.getElementById("modal-close-btn").onclick = () => document.getElementById("edit-modal").classList.remove("open");
+document.getElementById("modal-cancel-btn").onclick = () => document.getElementById("edit-modal").classList.remove("open");
+
+document.getElementById("edit-form").onsubmit = async (e) => {
+  e.preventDefault();
+  if (!editTarget) return;
+
+  const payload = {
+    book_slug: currentBook.slug,
+    source_page: currentPage,
+    q_index: editTarget.idx,
+    question_data: {
+      orig_question: editTarget.q.question,
+      question: document.getElementById("edit-q-text").value,
+      answer_letter: document.getElementById("edit-q-ans").value,
+      lesson: document.getElementById("edit-q-lesson").value,
+      answer_status: document.getElementById("edit-q-status").value,
+      answer_evidence: document.getElementById("edit-q-ev").value
+    }
+  };
+
+  // Record into local edits storage so user can export anytime
+  addLocalEdit({
+    book_slug: currentBook.slug,
+    source_page: currentPage,
+    orig_question: editTarget.q.question,
+    ...payload.question_data,
+    timestamp: new Date().toISOString()
+  });
+
+  try {
+    const res = await fetch("/api/save_question", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    if (result.success) {
+      alert("Saved successfully!");
+      document.getElementById("edit-modal").classList.remove("open");
+      await loadBookQuestions(currentBook.slug);
+      renderCurrentPage();
+    } else {
+      alert("Local edit saved! (Server save returned: " + result.error + ")");
+      document.getElementById("edit-modal").classList.remove("open");
+    }
+  } catch (err) {
+    alert("Saved to local browser edits! (Server offline or static mode)");
+    document.getElementById("edit-modal").classList.remove("open");
+  }
+};
+
+// EXPORT EDITS TO FILE
+document.getElementById("export-edits-btn").onclick = () => {
+  const edits = getLocalEdits();
+  if (edits.length === 0) {
+    alert("No edits recorded in this session yet. Click '✏️ Edit' on any question card to make changes!");
+    return;
+  }
+  const blob = new Blob([JSON.stringify({ edits, export_date: new Date().toISOString() }, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `forensic_edits_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+};
+
+// IMPORT EDITS FROM FILE
+document.getElementById("import-edits-btn").onclick = () => document.getElementById("import-file-input").click();
+document.getElementById("import-file-input").onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (evt) => {
+    try {
+      const data = JSON.parse(evt.target.result);
+      const res = await fetch("/api/import_edits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (result.success) {
+        alert(result.message);
+        if (currentBook) await loadBookQuestions(currentBook.slug);
+        renderCurrentPage();
+      } else {
+        alert("Import error: " + result.error);
+      }
+    } catch (err) {
+      alert("Failed to parse or import edits JSON: " + err);
+    }
+  };
+  reader.readAsText(file);
+};
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(/[&<>"']/g, s => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[s]));
+}
+
+init();
+</script>
+</body>
+</html>
