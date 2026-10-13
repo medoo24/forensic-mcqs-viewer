@@ -37,6 +37,19 @@ main{padding:14px 18px;max-width:1700px;margin:0 auto}
 .ctrl-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card);padding:10px 14px;border-radius:8px;border:1px solid var(--bdr);margin-bottom:10px}
 .book-sel{flex:1;min-width:250px;font-weight:600}
 
+/* Multi-select Lesson Dropdown */
+.ms-drop{position:relative;display:inline-block;min-width:210px}
+.ms-btn{width:100%;text-align:left;padding:6px 11px;border-radius:6px;border:1px solid var(--bdr);background:var(--card);color:var(--txt);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;user-select:none}
+.ms-btn::after{content:'▾';font-size:11px;margin-left:6px;color:var(--mut)}
+.ms-menu{position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:280px;overflow-y:auto;background:var(--card);border:1px solid var(--bdr);border-radius:6px;box-shadow:0 10px 25px rgba(0,0,0,0.15);padding:6px 0;z-index:90;display:none}
+.ms-menu.open{display:block}
+.ms-actions{display:flex;justify-content:space-between;padding:4px 10px 6px;border-bottom:1px solid var(--bdr);font-size:11px}
+.ms-actions a{color:var(--pri);cursor:pointer;font-weight:700;text-decoration:none}
+.ms-actions a:hover{text-decoration:underline}
+.ms-item{display:flex;align-items:center;gap:7px;padding:5px 10px;cursor:pointer;font-size:12px;user-select:none}
+.ms-item:hover{background:var(--tag-bg)}
+.ms-item input[type=checkbox]{margin:0;cursor:pointer}
+
 /* Page Chips */
 .chips{display:flex;flex-wrap:wrap;gap:3px;max-height:75px;overflow-y:auto;background:var(--card);padding:6px 10px;border-radius:8px;border:1px solid var(--bdr);margin-bottom:10px}
 .chip{padding:3px 8px;font-size:11px;font-weight:600;border-radius:4px;border:1px solid var(--bdr);background:var(--tag-bg);color:var(--txt);cursor:pointer;transition:all 0.15s ease}
@@ -154,9 +167,24 @@ ol li{margin-left:18px;margin-bottom:4px}
   <div class="ctrl-bar">
     <label><b>Book:</b></label>
     <select id="bk-sel" class="book-sel"></select>
-    <label><b>Lesson:</b></label>
-    <select id="cmp-lesson" style="min-width:180px"><option value="all">All Lessons</option></select>
-    <div style="display:flex;align-items:center;gap:5px">
+
+    <!-- Multi-select Lesson dropdown -->
+    <label><b>Lessons:</b></label>
+    <div class="ms-drop" id="cmp-ms-drop">
+      <div class="ms-btn" id="cmp-ms-btn">All Lessons</div>
+      <div class="ms-menu" id="cmp-ms-menu">
+        <div class="ms-actions">
+          <a id="cmp-ms-all">Select All</a>
+          <a id="cmp-ms-clr">Clear All</a>
+        </div>
+        <div id="cmp-ms-list"></div>
+      </div>
+    </div>
+
+    <!-- Export Selected Lessons for this Book -->
+    <button id="xp-book-btn" class="pri" title="Export all questions of the selected lessons in this book">📥 Export Book Lessons</button>
+
+    <div style="display:flex;align-items:center;gap:5px;margin-left:auto">
       <button id="pp-btn">← Prev</button>
       <label>Page:</label>
       <input type="number" id="pg-in" min="1" value="1" style="width:62px">
@@ -214,7 +242,19 @@ ol li{margin-left:18px;margin-bottom:4px}
 <section id="s2" class="sec">
   <div class="fbar">
     <input type="text" id="cl-q" placeholder="Search question or book name..." style="flex:1;min-width:220px">
-    <select id="cl-lesson" style="min-width:175px"><option value="all">All Lessons</option></select>
+    
+    <!-- Multi-select Lesson dropdown for Clusters -->
+    <div class="ms-drop" id="cl-ms-drop">
+      <div class="ms-btn" id="cl-ms-btn">All Lessons</div>
+      <div class="ms-menu" id="cl-ms-menu">
+        <div class="ms-actions">
+          <a id="cl-ms-all">Select All</a>
+          <a id="cl-ms-clr">Clear All</a>
+        </div>
+        <div id="cl-ms-list"></div>
+      </div>
+    </div>
+
     <select id="cl-flt">
       <option value="all">All Duplicate Clusters</option>
       <option value="conflict">Conflicts (Differing Answers)</option>
@@ -236,7 +276,19 @@ ol li{margin-left:18px;margin-bottom:4px}
 <section id="s3" class="sec">
   <div class="fbar">
     <input type="text" id="qb-q" placeholder="Search question text..." style="flex:1;min-width:220px">
-    <select id="qb-lesson" style="min-width:175px"><option value="all">All Lessons</option></select>
+    
+    <!-- Multi-select Lesson dropdown for Q-Bank -->
+    <div class="ms-drop" id="qb-ms-drop">
+      <div class="ms-btn" id="qb-ms-btn">All Lessons</div>
+      <div class="ms-menu" id="qb-ms-menu">
+        <div class="ms-actions">
+          <a id="qb-ms-all">Select All</a>
+          <a id="qb-ms-clr">Clear All</a>
+        </div>
+        <div id="qb-ms-list"></div>
+      </div>
+    </div>
+
     <select id="qb-st">
       <option value="all">All Answer Statuses</option>
       <option value="marked">Answered by Mark</option>
@@ -266,13 +318,12 @@ ol li{margin-left:18px;margin-bottom:4px}
 <!-- ─── TAB 4: GUIDE ─── -->
 <section id="s4" class="sec">
   <div class="gsec">
-    <h3>🌐 Online Sharing — How Collaborators Can Help</h3>
+    <h3>🌐 Online Sharing &amp; Exporting Lessons per Book</h3>
     <ol>
-      <li><b>Open the online link</b> on any phone or laptop — no install needed.</li>
-      <li><b>Review questions</b> in Tab 1 or 3 and click <b>"✏️ Edit"</b> to correct answers, lessons, or question text.</li>
-      <li><b>Export Edits</b> — Click "📥 Export Edits" in the top bar. It downloads a tiny <code>forensic_edits_*.json</code> file.</li>
-      <li><b>Send the JSON file</b> via WhatsApp / Telegram / Email.</li>
-      <li><b>You click "📤 Import Edits"</b> in your local visualizer → their corrections are applied instantly!</li>
+      <li><b>Select Multiple Lessons</b>: Click on the <b>Lessons</b> dropdown in Tab 1, 2, or 3 to check one or more lessons simultaneously.</li>
+      <li><b>Export Book Lessons</b>: Click <b>"📥 Export Book Lessons"</b> in Tab 1 to download all questions for your selected lessons from the currently opened book as a standalone JSON or text study file.</li>
+      <li><b>Review &amp; Edit</b>: Review questions in Tab 1 or 3 and click <b>"✏️ Edit"</b> to correct answers, lessons, or question text.</li>
+      <li><b>Export Edits</b>: Click "📥 Export Edits" in the top bar to export collaborative reviewer corrections.</li>
     </ol>
   </div>
   <div class="gsec">
@@ -293,7 +344,7 @@ MCQs\
     │   └── by_book\*.json         # Per-book for fast lookup
     ├── server.py                  # Local Python server
     ├── index.html                 # This app
-    └── web_dist\                  # Deploy to GitHub Pages
+    └── web_dist\                  # Deployed to GitHub Pages (includes full images)
     </pre>
   </div>
   <div class="gsec">
@@ -371,17 +422,13 @@ python run1b.py
 <script>
 /* ────── STATIC SHIM for GitHub Pages ────── */
 (function(){
-  /* Detect if we are served statically (no Python server) */
   var host = window.location.hostname;
   var isStatic = host === '' || host.indexOf('github.io') !== -1 || host.indexOf('netlify.app') !== -1 || window.location.protocol === 'file:';
   if(!isStatic) return;
 
-  /* Compute base URL of this HTML file */
   var base = window.location.href.replace(/\/[^/]*$/, '/');
-
   var staticClusters = null;
   var staticQuestions = null;
-
   var origFetch = window.fetch.bind(window);
 
   function jsonResp(data){
@@ -421,6 +468,21 @@ python run1b.py
       return origFetch(base+'data/by_book/'+p.slug+'.json');
     }
 
+    /* GitHub Pages Static Page Images Support */
+    if(us.indexOf('/api/page_image') !== -1){
+      var pImg = parseQS(us);
+      var bSlug = pImg.slug;
+      var pNum = parseInt(pImg.page || '1');
+      var pStr = 'p' + String(pNum).padStart(4, '0') + '.jpg';
+      return origFetch(base+'data/books.json').then(function(r){return r.json();}).then(function(bks){
+        var bk = bks.find(function(b){return b.slug === bSlug;});
+        if(bk && bk.img_dir){
+          return origFetch(base + bk.img_dir + '/' + pStr);
+        }
+        return Promise.resolve(new Response('', {status:404}));
+      });
+    }
+
     if(us.indexOf('/api/clusters') !== -1){
       var loadCl = staticClusters ? Promise.resolve(staticClusters) :
         origFetch(base+'data/clusters.json').then(function(r){return r.json();}).then(function(d){staticClusters=d;return d;});
@@ -431,11 +493,13 @@ python run1b.py
         var lf = p2.lesson||'all';
         var pg = parseInt(p2.page||'1');
         var lm = parseInt(p2.limit||'20');
+        var lessonsList = (lf && lf !== 'all') ? lf.split(',').map(function(s){return s.trim();}).filter(Boolean) : null;
+
         var filtered = allCl.filter(function(c){
           if(ft==='conflict'&&!c.has_conflict) return false;
           if(ft==='reps3'&&(c.repeat_count||0)<3) return false;
           if(ft==='reps5'&&(c.repeat_count||0)<5) return false;
-          if(lf!=='all'&&c.canonical_lesson!==lf) return false;
+          if(lessonsList && (!c.canonical_lesson || lessonsList.indexOf(c.canonical_lesson) === -1)) return false;
           if(qt){
             var s=(c.canonical_question||'').toLowerCase();
             var b=(c.appears_in||[]).join(' ').toLowerCase();
@@ -459,13 +523,15 @@ python run1b.py
         var lf2 = p3.lesson||'all';
         var pg2 = parseInt(p3.page||'1');
         var lm2 = parseInt(p3.limit||'25');
+        var lessonsList2 = (lf2 && lf2 !== 'all') ? lf2.split(',').map(function(s){return s.trim();}).filter(Boolean) : null;
+
         var filt = allQs.filter(function(it){
           if(sf==='marked'&&(it.answer_status!=='shown_in_file'||it.answer_source==='from_key')) return false;
           if(sf==='key'&&it.answer_source!=='from_key') return false;
           if(sf==='unanswered'&&(it.answer_letter||'').trim()) return false;
           if(sf==='conflict'&&!it.conflict) return false;
           if(qf!=='all'&&it.qtype!==qf) return false;
-          if(lf2!=='all'&&it.lesson!==lf2) return false;
+          if(lessonsList2 && (!it.lesson || lessonsList2.indexOf(it.lesson) === -1)) return false;
           if(qtt&&(it.question||'').toLowerCase().indexOf(qtt)===-1) return false;
           return true;
         });
@@ -474,26 +540,97 @@ python run1b.py
       });
     }
 
-    if(us.indexOf('/api/page_image') !== -1){
-      return Promise.resolve(new Response('', {status:404}));
-    }
-
     return origFetch(url, opts);
   };
 })();
 
 /* ────── STATE ────── */
 var allBooks=[], allLessons=[], curBook=null, curBkQs=[], curPg=1, editTgt=null;
-var zoom=1, panX=0, panY=0, isDrag=false, dsx,dsy;
+var selectedLessonsCmp = new Set();
+var selectedLessonsCl = new Set();
+var selectedLessonsQb = new Set();
 
+var zoom=1, panX=0, panY=0, isDrag=false, dsx,dsy;
 var EDITS_KEY='forensic_local_edits_v1';
+
 function getEdits(){try{return JSON.parse(localStorage.getItem(EDITS_KEY)||'[]');}catch(e){return[];}}
 function saveEdit(e){var ed=getEdits().filter(function(x){return!(x.book_slug===e.book_slug&&x.orig_question===e.orig_question);});ed.push(e);localStorage.setItem(EDITS_KEY,JSON.stringify(ed));}
 
-/* helpers */
 function esc(s){if(!s)return'';return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function G(id){return document.getElementById(id);}
-function lessonOpt(ls){ return '<option value="all">All Lessons ('+(ls.length)+')</option>'+ls.map(function(l){return'<option value="'+esc(l)+'">'+esc(l)+'</option>';}).join(''); }
+
+/* ─── MULTI-SELECT DROPDOWN COMPONENT ─── */
+function initMultiSelect(prefix, selectedSet, onChangeCb){
+  var drop = G(prefix + '-ms-drop');
+  var btn = G(prefix + '-ms-btn');
+  var menu = G(prefix + '-ms-menu');
+  var list = G(prefix + '-ms-list');
+  var selAll = G(prefix + '-ms-all');
+  var clrAll = G(prefix + '-ms-clr');
+
+  btn.onclick = function(e){
+    e.stopPropagation();
+    var wasOpen = menu.classList.contains('open');
+    document.querySelectorAll('.ms-menu').forEach(function(m){m.classList.remove('open');});
+    if(!wasOpen) menu.classList.add('open');
+  };
+
+  selAll.onclick = function(e){
+    e.stopPropagation();
+    allLessons.forEach(function(l){ selectedSet.add(l); });
+    updateUI();
+    if(onChangeCb) onChangeCb();
+  };
+
+  clrAll.onclick = function(e){
+    e.stopPropagation();
+    selectedSet.clear();
+    updateUI();
+    if(onChangeCb) onChangeCb();
+  };
+
+  function updateUI(){
+    if(selectedSet.size === 0 || selectedSet.size === allLessons.length){
+      btn.textContent = 'All Lessons (' + allLessons.length + ')';
+    } else {
+      btn.textContent = selectedSet.size + ' Lesson' + (selectedSet.size > 1 ? 's' : '') + ' Selected';
+    }
+    list.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+      cb.checked = selectedSet.has(cb.value);
+    });
+  }
+
+  function renderList(){
+    list.innerHTML = allLessons.map(function(l){
+      var chk = selectedSet.has(l) ? ' checked' : '';
+      return '<div class="ms-item" data-val="'+esc(l)+'">' +
+        '<input type="checkbox" value="'+esc(l)+'"'+chk+'>' +
+        '<span>'+esc(l)+'</span>' +
+        '</div>';
+    }).join('');
+
+    list.querySelectorAll('.ms-item').forEach(function(item){
+      item.onclick = function(e){
+        e.stopPropagation();
+        var val = item.getAttribute('data-val');
+        var cb = item.querySelector('input');
+        if(e.target !== cb) cb.checked = !cb.checked;
+        if(cb.checked) selectedSet.add(val);
+        else selectedSet.delete(val);
+        updateUI();
+        if(onChangeCb) onChangeCb();
+      };
+    });
+    updateUI();
+  }
+
+  return { render: renderList, update: updateUI };
+}
+
+/* Close dropdowns when clicking outside */
+window.addEventListener('click', function(){
+  document.querySelectorAll('.ms-menu').forEach(function(m){m.classList.remove('open');});
+});
 
 /* ─── PAN & ZOOM ─── */
 var vc=G('vc'), vw=G('vw'), zlbl=G('zlbl');
@@ -541,6 +678,8 @@ G('lbk-close').onclick=function(){lbk.classList.remove('on');};
 lbk.onclick=function(e){if(e.target===lbk)lbk.classList.remove('on');};
 function showLbk(src){lbkImg.src=src;lbk.classList.add('on');}
 
+var cmpMs, clMs, qbMs;
+
 /* ─── INIT ─── */
 async function init(){
   try{
@@ -565,13 +704,18 @@ async function init(){
 }
 
 function populateLessons(){
-  var lo=lessonOpt(allLessons);
-  G('cmp-lesson').innerHTML=lo;
-  G('cl-lesson').innerHTML='<option value="all">All Lessons</option>'+allLessons.map(function(l){return'<option value="'+esc(l)+'">'+esc(l)+'</option>';}).join('');
-  G('qb-lesson').innerHTML='<option value="all">All Lessons</option>'+allLessons.map(function(l){return'<option value="'+esc(l)+'">'+esc(l)+'</option>';}).join('');
-  G('cmp-lesson').onchange=function(){renderChips();renderCurPage();};
+  cmpMs = initMultiSelect('cmp', selectedLessonsCmp, function(){
+    renderChips();
+    renderCurPage();
+  });
+  cmpMs.render();
 
-  /* Populate edit modal lesson dropdown */
+  clMs = initMultiSelect('cl', selectedLessonsCl, function(){});
+  clMs.render();
+
+  qbMs = initMultiSelect('qb', selectedLessonsQb, function(){});
+  qbMs.render();
+
   G('eq-lesson').innerHTML='<option value="">— no lesson —</option>'+allLessons.map(function(l){return'<option value="'+esc(l)+'">'+esc(l)+'</option>';}).join('');
 }
 
@@ -581,7 +725,6 @@ async function selectBook(slug){
   panX=0;panY=0;zoom=1;applyTx();
   await loadBkQs(slug);
 
-  /* Get list of valid pages that contain questions */
   var qPages = getQuestionPages();
   curPg = qPages.length ? qPages[0] : 1;
 
@@ -594,7 +737,6 @@ async function loadBkQs(slug){
   catch(e){curBkQs=[];}
 }
 
-/* Get unique sorted list of pages containing questions */
 function getQuestionPages(){
   var pages = [];
   var seen = {};
@@ -608,12 +750,19 @@ function getQuestionPages(){
   return pages;
 }
 
-/* ─── ONLY SHOW PAGES WITH QUESTIONS (REMOVE EXTRA EMPTY PAGES) ─── */
+function imgUrlForPage(pg){
+  if(!curBook||!curBook.img_dir) return '';
+  return curBook.img_dir+'/p'+String(pg).padStart(4,'0')+'.jpg';
+}
+
 function renderChips(){
-  var selLesson=G('cmp-lesson').value;
+  var hasActiveFilter = selectedLessonsCmp.size > 0 && selectedLessonsCmp.size < allLessons.length;
   var lessonPages=new Set();
-  if(selLesson!=='all'){
-    curBkQs.forEach(function(q){if((q.lesson||'').trim()===selLesson)lessonPages.add(q.source_page);});
+  if(hasActiveFilter){
+    curBkQs.forEach(function(q){
+      var l=(q.lesson||'').trim();
+      if(selectedLessonsCmp.has(l)) lessonPages.add(q.source_page);
+    });
   }
 
   var validPages = getQuestionPages();
@@ -623,9 +772,9 @@ function renderChips(){
 
   var h='';
   validPages.forEach(function(p){
-    var isLH=selLesson!=='all'&&lessonPages.has(p);
+    var isLH=hasActiveFilter && lessonPages.has(p);
     var cls='chip'+(p===curPg?' on':'')+(isLH?' lesson-hi':'');
-    h+='<span class="'+cls+'" data-p="'+p+'" title="Page '+p+(isLH?' • '+selLesson:'')+'">p.'+p+'</span>';
+    h+='<span class="'+cls+'" data-p="'+p+'" title="Page '+p+(isLH?' • Matches selected lessons':'')+'">p.'+p+'</span>';
   });
   G('pgchips').innerHTML=h;
   G('pgchips').querySelectorAll('.chip').forEach(function(c){
@@ -635,37 +784,37 @@ function renderChips(){
   G('pg-tot').textContent='/ '+validPages.length+' pages with Qs (book p.1-'+curBook.max_page+')';
 }
 
-function imgUrlForPage(pg){
-  if(!curBook||!curBook.img_dir) return '';
-  return curBook.img_dir+'/p'+String(pg).padStart(4,'0')+'.jpg';
-}
-
 function renderCurPage(){
   G('pg-in').value=curPg;
   G('pg-ind').textContent='Page '+curPg+' of '+curBook.max_page;
 
-  /* Image: only in Tab 1 */
+  /* Image Loading: seamless support for both GitHub Pages and local server */
   var img=G('pg-img');
+  var directSrc = imgUrlForPage(curPg);
+  var apiSrc = '/api/page_image?slug='+curBook.slug+'&page='+curPg;
+
   img.onerror=function(){
-    var alt2=imgUrlForPage(curPg);
-    if(alt2&&img.src.indexOf(alt2)===-1){
-      img.src=alt2;
+    if(directSrc && img.src.indexOf(directSrc) === -1){
+      img.src = directSrc;
     } else {
-      img.alt='Page image only available when running local server.py';
+      img.alt = 'Page image not found for page ' + curPg;
     }
   };
-  img.src='/api/page_image?slug='+curBook.slug+'&page='+curPg;
+  img.src = directSrc || apiSrc;
 
-  var selLesson=G('cmp-lesson').value;
+  var hasActiveFilter = selectedLessonsCmp.size > 0 && selectedLessonsCmp.size < allLessons.length;
   var qs=curBkQs.filter(function(q){
     if(q.source_page!==curPg)return false;
-    if(selLesson!=='all'&&(q.lesson||'').trim()!==selLesson)return false;
+    if(hasActiveFilter){
+      var l=(q.lesson||'').trim();
+      if(!selectedLessonsCmp.has(l)) return false;
+    }
     return true;
   });
   G('qcnt').textContent=qs.length;
 
   if(!qs.length){
-    G('qcont').innerHTML='<div style="padding:20px;text-align:center;color:var(--mut)">No questions'+(selLesson!=='all'?' matching lesson "'+esc(selLesson)+'"':'')+' on page '+curPg+'.</div>';
+    G('qcont').innerHTML='<div style="padding:20px;text-align:center;color:var(--mut)">No questions matching selected lessons on page '+curPg+'.</div>';
   }else{
     G('qcont').innerHTML=qs.map(function(q,i){return renderQCard(q,i);}).join('');
   }
@@ -741,15 +890,51 @@ window.addEventListener('keydown',function(e){
   if(e.key==='ArrowRight') G('np-btn').click();
 });
 
+/* ─── EXPORT SELECTED LESSONS PER BOOK ─── */
+G('xp-book-btn').onclick=function(){
+  if(!curBook){alert('Please select a book first.'); return;}
+  var hasFilter = selectedLessonsCmp.size > 0 && selectedLessonsCmp.size < allLessons.length;
+  var filteredQs = curBkQs.filter(function(q){
+    if(!hasFilter) return true;
+    var l = (q.lesson || '').trim();
+    return selectedLessonsCmp.has(l);
+  });
+
+  if(!filteredQs.length){
+    alert('No questions match the selected lesson(s) in ' + curBook.name);
+    return;
+  }
+
+  var lessonLabels = hasFilter ? Array.from(selectedLessonsCmp).join('_') : 'all_lessons';
+  var cleanName = curBook.slug + '_' + lessonLabels.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 35);
+  
+  var exportPayload = {
+    book_name: curBook.name,
+    book_slug: curBook.slug,
+    exported_at: new Date().toISOString(),
+    selected_lessons: hasFilter ? Array.from(selectedLessonsCmp) : ['all'],
+    total_questions: filteredQs.length,
+    questions: filteredQs
+  };
+
+  var blob = new Blob([JSON.stringify(exportPayload, null, 2)], {type: 'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = cleanName + '_questions.json';
+  a.click();
+};
+
 /* ─── CLUSTERS (TAB 2) ─── */
 var clPg=1;
 async function loadClusters(){
   window.clLoaded=true;
   var q=G('cl-q').value;
   var flt=G('cl-flt').value;
-  var les=G('cl-lesson').value;
+  var lesParam = (selectedLessonsCl.size > 0 && selectedLessonsCl.size < allLessons.length) ?
+    Array.from(selectedLessonsCl).join(',') : 'all';
+
   try{
-    var r=await fetch('/api/clusters?page='+clPg+'&limit=20&q='+encodeURIComponent(q)+'&filter='+flt+'&lesson='+encodeURIComponent(les));
+    var r=await fetch('/api/clusters?page='+clPg+'&limit=20&q='+encodeURIComponent(q)+'&filter='+flt+'&lesson='+encodeURIComponent(lesParam));
     var d=await r.json();
     G('cl-cnt').textContent='Showing '+d.clusters.length+' of '+d.total;
     G('cl-pgn').textContent='Page '+clPg;
@@ -817,9 +1002,11 @@ async function loadQuestions(){
   var q=G('qb-q').value;
   var st=G('qb-st').value;
   var qt=G('qb-type').value;
-  var le=G('qb-lesson').value;
+  var lesParam = (selectedLessonsQb.size > 0 && selectedLessonsQb.size < allLessons.length) ?
+    Array.from(selectedLessonsQb).join(',') : 'all';
+
   try{
-    var r=await fetch('/api/questions?page='+qbPg+'&limit=25&q='+encodeURIComponent(q)+'&status='+st+'&qtype='+qt+'&lesson='+encodeURIComponent(le));
+    var r=await fetch('/api/questions?page='+qbPg+'&limit=25&q='+encodeURIComponent(q)+'&status='+st+'&qtype='+qt+'&lesson='+encodeURIComponent(lesParam));
     var d=await r.json();
     G('qb-cnt').textContent='Showing '+d.questions.length+' of '+d.total;
     G('qb-pgn').textContent='Page '+qbPg;
@@ -864,10 +1051,13 @@ G('qb-next').onclick=function(){qbPg++;loadQuestions();};
 
 /* ─── EDIT MODAL ─── */
 function openEdit(idx){
-  var selLesson=G('cmp-lesson').value;
+  var hasActiveFilter = selectedLessonsCmp.size > 0 && selectedLessonsCmp.size < allLessons.length;
   var qs=curBkQs.filter(function(q){
     if(q.source_page!==curPg)return false;
-    if(selLesson!=='all'&&(q.lesson||'').trim()!==selLesson)return false;
+    if(hasActiveFilter){
+      var l=(q.lesson||'').trim();
+      if(!selectedLessonsCmp.has(l)) return false;
+    }
     return true;
   });
   var q=qs[idx]; if(!q)return;
@@ -933,7 +1123,7 @@ G('edit-fm').onsubmit=async function(e){
   renderCurPage();
 };
 
-/* ─── EXPORT / IMPORT ─── */
+/* ─── EXPORT / IMPORT EDITS ─── */
 G('xp-btn').onclick=function(){
   var ed=getEdits();
   if(!ed.length){alert('No edits yet. Click ✏️ Edit on any question card first.');return;}
