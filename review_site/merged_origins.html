@@ -1,0 +1,851 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ðŸ”— Forensic MCQ â€” Merged Origins Explorer</title>
+<style>
+  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     CSS Variables â€” Light / Dark themes
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  :root {
+    --bg:      #f4f6fa;
+    --card:    #ffffff;
+    --bdr:     #dde1ea;
+    --txt:     #1a1d23;
+    --mut:     #6b7280;
+    --pri:     #3b82f6;
+    --pri-lt:  #eff6ff;
+    --err:     #ef4444;
+    --err-lt:  #fef2f2;
+    --suc:     #22c55e;
+    --suc-lt:  #f0fdf4;
+    --warn:    #f59e0b;
+    --warn-lt: #fffbeb;
+    --badge-book-bg: #dbeafe;
+    --badge-book-fg: #1d4ed8;
+    --badge-lesson-bg: #e0e7ff;
+    --badge-lesson-fg: #4338ca;
+    --badge-qtype-bg:  #f3e8ff;
+    --badge-qtype-fg:  #7c3aed;
+    --shadow: 0 1px 4px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.05);
+    --radius: 10px;
+    --transition: .2s ease;
+  }
+  [data-theme="dark"] {
+    --bg:      #0f1117;
+    --card:    #1c1f2b;
+    --bdr:     #2d3148;
+    --txt:     #e4e6f0;
+    --mut:     #8892a4;
+    --pri:     #60a5fa;
+    --pri-lt:  #1e3a5f;
+    --err:     #f87171;
+    --err-lt:  #3b1a1a;
+    --suc:     #4ade80;
+    --suc-lt:  #142b1c;
+    --warn:    #fbbf24;
+    --warn-lt: #3b2a09;
+    --badge-book-bg: #1e3a5f;
+    --badge-book-fg: #93c5fd;
+    --badge-lesson-bg: #2e1f6b;
+    --badge-lesson-fg: #a5b4fc;
+    --badge-qtype-bg:  #3b1f6b;
+    --badge-qtype-fg:  #c4b5fd;
+    --shadow: 0 1px 6px rgba(0,0,0,.4);
+  }
+
+  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     Reset & Base
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--txt);
+    font-size: 14px;
+    line-height: 1.6;
+    transition: background var(--transition), color var(--transition);
+    min-height: 100vh;
+  }
+  a { color: var(--pri); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     Header
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  .site-header {
+    background: var(--card);
+    border-bottom: 1px solid var(--bdr);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .header-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -.3px;
+    flex: 1 1 auto;
+    min-width: 200px;
+  }
+  .header-title span { opacity: .7; font-weight: 400; font-size: 14px; }
+  .header-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .stat-pill {
+    background: var(--pri-lt);
+    color: var(--pri);
+    border: 1px solid var(--pri);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .stat-pill.conflict { background: var(--err-lt); color: var(--err); border-color: var(--err); }
+  .stat-pill.multi    { background: var(--suc-lt); color: var(--suc); border-color: var(--suc); }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .btn-icon {
+    background: var(--card);
+    border: 1px solid var(--bdr);
+    color: var(--txt);
+    border-radius: 8px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background var(--transition), border-color var(--transition);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .btn-icon:hover { background: var(--pri-lt); border-color: var(--pri); color: var(--pri); }
+  .btn-back { font-size: 13px; }
+
+  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     Filter Bar
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  .filter-bar {
+    background: var(--card);
+    border-bottom: 1px solid var(--bdr);
+    padding: 12px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  .filter-bar input[type="text"],
+  .filter-bar select {
+    background: var(--bg);
+    border: 1px solid var(--bdr);
+    color: var(--txt);
+    border-radius: 7px;
+    padding: 6px 10px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color var(--transition);
+  }
+  .filter-bar input[type="text"] { min-width: 220px; flex: 1 1 220px; }
+  .filter-bar select { min-width: 140px; }
+  .filter-bar input:focus,
+  .filter-bar select:focus { border-color: var(--pri); }
+  .btn-reset {
+    background: var(--err-lt);
+    border: 1px solid var(--err);
+    color: var(--err);
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background var(--transition);
+    white-space: nowrap;
+  }
+  .btn-reset:hover { background: var(--err); color: #fff; }
+  .btn-export {
+    background: var(--suc-lt);
+    border: 1px solid var(--suc);
+    color: var(--suc);
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background var(--transition);
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .btn-export:hover { background: var(--suc); color: #fff; }
+  .result-count {
+    font-size: 12px;
+    color: var(--mut);
+    white-space: nowrap;
+    padding: 6px 4px;
+  }
+
+  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     Main layout
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  .main { max-width: 960px; margin: 0 auto; padding: 20px 16px 40px; }
+
+  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     Loading / Empty
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  .loader-wrap {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 14px; padding: 80px 20px; color: var(--mut);
+  }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 4px solid var(--bdr);
+    border-top-color: var(--pri);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text { font-size: 15px; font-weight: 500; }
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--mut);
+    font-size: 15px;
+  }
+  .empty-state .emoji { font-size: 40px; display: block; margin-bottom: 10px; }
+
+  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     Cluster Card
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  .cluster-list { display: flex; flex-direction: column; gap: 14px; }
+
+  .cluster-card {
+    background: var(--card);
+    border: 1px solid var(--bdr);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: box-shadow var(--transition);
+  }
+  .cluster-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.12); }
+  .cluster-card.has-conflict { border-left: 4px solid var(--err); }
+
+  .card-header {
+    padding: 14px 16px 10px;
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    border-radius: 20px; padding: 2px 10px;
+    font-size: 11px; font-weight: 700; white-space: nowrap;
+    letter-spacing: .3px; text-transform: uppercase;
+  }
+  .badge-lesson   { background: var(--badge-lesson-bg); color: var(--badge-lesson-fg); }
+  .badge-qtype    { background: var(--badge-qtype-bg);  color: var(--badge-qtype-fg);  }
+  .badge-conflict { background: var(--err-lt); color: var(--err); border: 1px solid var(--err); }
+  .badge-source-count {
+    background: var(--pri-lt); color: var(--pri);
+    border-radius: 20px; padding: 2px 10px;
+    font-size: 11px; font-weight: 700;
+  }
+
+  .card-body { padding: 0 16px 10px; }
+
+  .canonical-q {
+    font-size: 14.5px; font-weight: 600;
+    line-height: 1.5; margin-bottom: 10px;
+    padding: 8px 10px;
+    background: var(--bg);
+    border-radius: 7px;
+    border-left: 3px solid var(--pri);
+  }
+  .canonical-q .label {
+    display: block; font-size: 11px; font-weight: 700;
+    color: var(--pri); margin-bottom: 4px; text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .origins-row {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    align-items: center; margin-bottom: 10px;
+  }
+  .origins-label {
+    font-size: 11px; font-weight: 700; color: var(--mut);
+    text-transform: uppercase; letter-spacing: .4px;
+  }
+  .book-pill {
+    background: var(--badge-book-bg);
+    color: var(--badge-book-fg);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 11px; font-weight: 600;
+    max-width: 260px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    title: "";
+  }
+
+  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     Expand / Collapse
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  .toggle-btn {
+    background: none; border: 1px solid var(--bdr);
+    color: var(--pri); border-radius: 7px;
+    padding: 4px 12px; font-size: 12px; font-weight: 600;
+    cursor: pointer; margin: 2px 0 8px;
+    transition: background var(--transition), color var(--transition);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .toggle-btn:hover { background: var(--pri-lt); }
+  .toggle-icon { transition: transform .2s; display: inline-block; }
+  .toggle-btn.open .toggle-icon { transform: rotate(180deg); }
+
+  .members-wrap {
+    max-height: 0; overflow: hidden;
+    transition: max-height .3s ease, opacity .25s ease;
+    opacity: 0;
+  }
+  .members-wrap.open {
+    max-height: 9999px; opacity: 1;
+  }
+
+  .member-block {
+    border: 1px solid var(--bdr);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .member-header {
+    background: var(--bg);
+    padding: 6px 12px;
+    font-size: 12px; font-weight: 700;
+    color: var(--mut);
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .member-header .src-badge {
+    background: var(--badge-book-bg); color: var(--badge-book-fg);
+    border-radius: 4px; padding: 1px 6px; font-size: 11px;
+    max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .member-body { padding: 8px 12px; }
+  .member-question {
+    font-size: 13.5px; font-weight: 500;
+    margin-bottom: 8px; color: var(--txt);
+  }
+  .member-question.same-as-canonical {
+    font-style: italic; color: var(--mut); font-size: 12px;
+    font-weight: 400;
+  }
+  .options-grid {
+    display: grid; grid-template-columns: auto 1fr;
+    gap: 2px 8px; margin-bottom: 8px;
+    font-size: 12.5px;
+  }
+  .opt-key { font-weight: 700; color: var(--pri); }
+  .opt-val { color: var(--txt); }
+
+  .answer-box {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 6px;
+    font-size: 12px; font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .answer-box.shown    { background: var(--suc-lt); color: var(--suc); }
+  .answer-box.not-shown { background: var(--warn-lt); color: var(--warn); }
+  .answer-box.conflict { background: var(--err-lt); color: var(--err); }
+
+  .evidence-text {
+    font-size: 11.5px; color: var(--mut); font-style: italic;
+    padding: 4px 8px; background: var(--bg);
+    border-radius: 5px; margin-top: 4px;
+    border-left: 2px solid var(--bdr);
+  }
+
+  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     Pagination
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  .pagination {
+    display: flex; justify-content: center; align-items: center;
+    gap: 10px; padding: 24px 0 0;
+    flex-wrap: wrap;
+  }
+  .page-btn {
+    background: var(--card); border: 1px solid var(--bdr);
+    color: var(--txt); border-radius: 8px;
+    padding: 6px 16px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: background var(--transition), border-color var(--transition);
+  }
+  .page-btn:hover:not(:disabled) { background: var(--pri-lt); border-color: var(--pri); color: var(--pri); }
+  .page-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .page-info { font-size: 13px; color: var(--mut); }
+
+  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     Responsive tweaks
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  @media (max-width: 600px) {
+    .header-title { font-size: 15px; }
+    .stat-pill    { font-size: 11px; padding: 2px 8px; }
+    .filter-bar   { gap: 8px; }
+    .canonical-q  { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     HEADER
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<header class="site-header">
+  <div class="header-title">
+    ðŸ”— Forensic MCQ â€” Merged Origins Explorer
+    <span id="dataStatus"></span>
+  </div>
+  <div class="header-pills">
+    <div class="stat-pill" id="pillTotal">â€” clusters</div>
+    <div class="stat-pill conflict" id="pillConflict">â€” conflicts</div>
+    <div class="stat-pill multi" id="pillMulti">â€” multi-source (3+)</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-icon" id="themeToggle" title="Toggle dark/light mode">ðŸŒ™ Dark</button>
+    <a class="btn-icon btn-back" href="index.html">â† Back to Index</a>
+  </div>
+</header>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FILTER BAR
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="filter-bar">
+  <input type="text" id="searchInput" placeholder="ðŸ” Search question textâ€¦" autocomplete="off">
+  <select id="lessonFilter"><option value="">All Lessons</option></select>
+  <select id="sourceCountFilter">
+    <option value="0">All Source Counts</option>
+    <option value="2">2+ Sources</option>
+    <option value="3">3+ Sources</option>
+    <option value="5">5+ Sources</option>
+  </select>
+  <select id="statusFilter">
+    <option value="">All Status</option>
+    <option value="conflict">Conflicts Only</option>
+    <option value="answered">With Answers</option>
+    <option value="no-answer">No Answer</option>
+  </select>
+  <select id="qtypeFilter">
+    <option value="">All Types</option>
+    <option value="mcq">MCQ</option>
+    <option value="essay">Essay</option>
+    <option value="case">Case</option>
+  </select>
+  <button class="btn-reset" id="resetBtn">âœ• Reset</button>
+  <span class="result-count" id="resultCount"></span>
+  <button class="btn-export" id="exportBtn">ðŸ“¥ Export CSV</button>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     MAIN CONTENT
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<main class="main">
+  <!-- Loading state -->
+  <div class="loader-wrap" id="loaderWrap">
+    <div class="spinner"></div>
+    <div class="loader-text">Loading clusters dataâ€¦</div>
+  </div>
+
+  <!-- Cluster list -->
+  <div class="cluster-list" id="clusterList" style="display:none"></div>
+
+  <!-- Empty state -->
+  <div class="empty-state" id="emptyState" style="display:none">
+    <span class="emoji">ðŸ”</span>
+    No clusters match your current filters.
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="pagination" style="display:none">
+    <button class="page-btn" id="prevBtn">â† Prev</button>
+    <span class="page-info" id="pageInfo">Page 1 of 1</span>
+    <button class="page-btn" id="nextBtn">Next â†’</button>
+  </div>
+</main>
+
+<script>
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   State
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+let allClusters = [];
+let filtered    = [];
+let currentPage = 1;
+const PAGE_SIZE = 20;
+
+let debounceTimer = null;
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Theme toggle
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+const themeBtn = document.getElementById('themeToggle');
+const html = document.documentElement;
+
+function setTheme(dark) {
+  html.setAttribute('data-theme', dark ? 'dark' : 'light');
+  themeBtn.textContent = dark ? 'â˜€ï¸ Light' : 'ðŸŒ™ Dark';
+  localStorage.setItem('mo_theme', dark ? 'dark' : 'light');
+}
+themeBtn.addEventListener('click', () => {
+  setTheme(html.getAttribute('data-theme') !== 'dark');
+});
+// Restore saved theme
+setTheme(localStorage.getItem('mo_theme') === 'dark');
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Helpers
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function abbrev(name, max = 30) {
+  if (!name) return '?';
+  const n = name.replace(/\.pdf$/i, '');
+  return n.length > max ? n.slice(0, max - 1) + 'â€¦' : n;
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function uniqueOriginBooks(cluster) {
+  // Deduplicate by source_file
+  const seen = new Set();
+  const out  = [];
+  for (const m of (cluster.members || [])) {
+    const key = m.source_file + '||' + m.source_page;
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push({ file: m.source_file, page: m.source_page });
+    }
+  }
+  return out;
+}
+
+function hasAnswer(cluster) {
+  return (cluster.members || []).some(m => m.answer_letter || m.answer_evidence);
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Build option text from options dict
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function renderOptions(options) {
+  if (!options || !Object.keys(options).length) return '';
+  let html = '<div class="options-grid">';
+  for (const [k, v] of Object.entries(options)) {
+    html += `<span class="opt-key">${escHtml(k)}.</span><span class="opt-val">${escHtml(v)}</span>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Render a single cluster card
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function renderCard(cluster) {
+  const conflict   = cluster.has_conflict;
+  const lesson     = cluster.canonical_lesson || '';
+  const qtype      = cluster.canonical_qtype  || '';
+  const count      = cluster.repeat_count     || (cluster.members || []).length;
+  const canonQ     = cluster.canonical_question || '';
+  const members    = cluster.members || [];
+  const origins    = uniqueOriginBooks(cluster);
+  const autoExpand = members.length === 1;
+
+  // Badges row
+  let badges = '';
+  if (lesson) badges += `<span class="badge badge-lesson">${escHtml(lesson)}</span>`;
+  if (qtype)  badges += `<span class="badge badge-qtype">${escHtml(qtype.toUpperCase())}</span>`;
+  if (conflict) badges += `<span class="badge badge-conflict">âš ï¸ Conflict</span>`;
+  badges += `<span class="badge-source-count">Found in ${count} source${count !== 1 ? 's' : ''}</span>`;
+
+  // Origin pills
+  const originPills = origins.map(o =>
+    `<span class="book-pill" title="${escHtml(o.file)}">${escHtml(abbrev(o.file))} p.${o.page}</span>`
+  ).join('');
+
+  // Members HTML
+  let membersHtml = '';
+  for (let i = 0; i < members.length; i++) {
+    const m = members[i];
+    const sameQ = (m.question || '').trim() === canonQ.trim();
+    const qClass = sameQ ? 'member-question same-as-canonical' : 'member-question';
+    const qText  = sameQ ? '(same as canonical)' : escHtml(m.question);
+
+    // Answer box
+    let answerHtml = '';
+    if (m.answer_letter) {
+      const optText = m.options && m.options[m.answer_letter]
+        ? ` â€” "${escHtml(m.options[m.answer_letter])}"` : '';
+      const isConflict = conflict && i > 0 &&
+        members[0].answer_letter && m.answer_letter !== members[0].answer_letter;
+      const cls = isConflict ? 'conflict' : 'shown';
+      answerHtml = `<div class="answer-box ${cls}">âœ… Answer: ${escHtml(m.answer_letter)}${optText}</div>`;
+    } else if (m.answer_status === 'shown_in_file' && m.answer_evidence) {
+      answerHtml = `<div class="answer-box shown">âœ… Answer shown in file</div>`;
+    } else {
+      answerHtml = `<div class="answer-box not-shown">â“ Answer not shown</div>`;
+    }
+
+    // Evidence
+    const evHtml = m.answer_evidence
+      ? `<div class="evidence-text">ðŸ“ Evidence: ${escHtml(m.answer_evidence.slice(0, 300))}${m.answer_evidence.length > 300 ? 'â€¦' : ''}</div>`
+      : '';
+
+    membersHtml += `
+      <div class="member-block">
+        <div class="member-header">
+          <span class="src-badge" title="${escHtml(m.source_file)}">${escHtml(abbrev(m.source_file, 40))}</span>
+          <span>page ${m.source_page}${m.q_number ? ' Â· Q' + escHtml(String(m.q_number)) : ''}</span>
+        </div>
+        <div class="member-body">
+          <div class="${qClass}">${qText}</div>
+          ${renderOptions(m.options)}
+          ${answerHtml}
+          ${evHtml}
+        </div>
+      </div>`;
+  }
+
+  const openClass = autoExpand ? ' open' : '';
+  const btnClass  = autoExpand ? ' open' : '';
+  const toggleLabel = autoExpand ? '' : `â–¼ Show all ${members.length} versions`;
+
+  return `
+<div class="cluster-card${conflict ? ' has-conflict' : ''}" data-id="${cluster.cluster_id}">
+  <div class="card-header">
+    ${badges}
+  </div>
+  <div class="card-body">
+    <div class="canonical-q">
+      <span class="label">ðŸ“Œ Canonical Question</span>
+      ${escHtml(canonQ)}
+    </div>
+    <div class="origins-row">
+      <span class="origins-label">ðŸ“š Origins:</span>
+      ${originPills}
+    </div>
+    ${autoExpand ? '' : `<button class="toggle-btn${btnClass}" data-cid="${cluster.cluster_id}">
+      <span class="toggle-icon">â–¼</span> Show all ${members.length} versions
+    </button>`}
+    <div class="members-wrap${openClass}" id="mwrap-${cluster.cluster_id}">
+      ${membersHtml}
+    </div>
+  </div>
+</div>`;
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Render the current page
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function renderPage() {
+  const list      = document.getElementById('clusterList');
+  const empty     = document.getElementById('emptyState');
+  const pagination = document.getElementById('pagination');
+  const countEl   = document.getElementById('resultCount');
+  const pageInfo  = document.getElementById('pageInfo');
+  const prevBtn   = document.getElementById('prevBtn');
+  const nextBtn   = document.getElementById('nextBtn');
+
+  const total   = filtered.length;
+  const totalPg = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > totalPg) currentPage = totalPg;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const slice = filtered.slice(start, start + PAGE_SIZE);
+
+  countEl.textContent = `Showing ${total === allClusters.length ? 'all' : total + ' of ' + allClusters.length} clusters`;
+
+  if (total === 0) {
+    list.style.display = 'none';
+    empty.style.display = '';
+    pagination.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  list.style.display = 'flex';
+  pagination.style.display = 'flex';
+
+  list.innerHTML = slice.map(renderCard).join('');
+
+  pageInfo.textContent = `Page ${currentPage} of ${totalPg}`;
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPg;
+
+  // Attach toggle listeners
+  list.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cid  = btn.dataset.cid;
+      const wrap = document.getElementById('mwrap-' + cid);
+      const open = wrap.classList.toggle('open');
+      btn.classList.toggle('open', open);
+      const icon = btn.querySelector('.toggle-icon');
+      if (icon) icon.style.transform = open ? 'rotate(180deg)' : '';
+      const count = allClusters.find(c => String(c.cluster_id) === String(cid))?.members?.length || 0;
+      // update label
+      const textNode = btn.childNodes[btn.childNodes.length - 1];
+      if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+        textNode.textContent = open ? ` Hide versions` : ` Show all ${count} versions`;
+      }
+    });
+  });
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Filter logic
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function applyFilters() {
+  const q           = document.getElementById('searchInput').value.trim().toLowerCase();
+  const lesson      = document.getElementById('lessonFilter').value;
+  const srcCount    = parseInt(document.getElementById('sourceCountFilter').value) || 0;
+  const status      = document.getElementById('statusFilter').value;
+  const qtype       = document.getElementById('qtypeFilter').value.toLowerCase();
+
+  filtered = allClusters.filter(c => {
+    // text search
+    if (q && !(c.canonical_question || '').toLowerCase().includes(q)) return false;
+    // lesson
+    if (lesson && (c.canonical_lesson || '') !== lesson) return false;
+    // source count
+    if (srcCount > 0 && (c.repeat_count || 0) < srcCount) return false;
+    // status
+    if (status === 'conflict'  && !c.has_conflict)     return false;
+    if (status === 'answered'  && !hasAnswer(c))        return false;
+    if (status === 'no-answer' && hasAnswer(c))         return false;
+    // qtype
+    if (qtype && (c.canonical_qtype || '').toLowerCase() !== qtype) return false;
+    return true;
+  });
+
+  currentPage = 1;
+  renderPage();
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Populate lesson dropdown
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function populateLessons() {
+  const lessons = [...new Set(allClusters.map(c => c.canonical_lesson || '').filter(Boolean))].sort();
+  const sel = document.getElementById('lessonFilter');
+  lessons.forEach(l => {
+    const opt = document.createElement('option');
+    opt.value = l;
+    opt.textContent = l;
+    sel.appendChild(opt);
+  });
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Update header stats
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function updateStats() {
+  const total    = allClusters.length;
+  const conflicts = allClusters.filter(c => c.has_conflict).length;
+  const multi    = allClusters.filter(c => (c.repeat_count || 0) >= 3).length;
+  document.getElementById('pillTotal').textContent    = `${total.toLocaleString()} clusters`;
+  document.getElementById('pillConflict').textContent = `${conflicts.toLocaleString()} conflicts`;
+  document.getElementById('pillMulti').textContent    = `${multi.toLocaleString()} multi-source (3+)`;
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   CSV Export
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const rows = [['cluster_id','lesson','qtype','canonical_question','repeat_count','has_conflict','sources']];
+  for (const c of filtered) {
+    const sources = (c.appears_in || []).join(' | ').replace(/"/g, '""');
+    const q       = (c.canonical_question || '').replace(/"/g, '""');
+    const lesson  = (c.canonical_lesson   || '').replace(/"/g, '""');
+    rows.push([
+      c.cluster_id,
+      `"${lesson}"`,
+      c.canonical_qtype || '',
+      `"${q}"`,
+      c.repeat_count || 0,
+      c.has_conflict ? 'true' : 'false',
+      `"${sources}"`
+    ]);
+  }
+  const csv  = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'merged_origins_export.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Event listeners
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+document.getElementById('searchInput').addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(applyFilters, 300);
+});
+['lessonFilter','sourceCountFilter','statusFilter','qtypeFilter'].forEach(id => {
+  document.getElementById(id).addEventListener('change', applyFilters);
+});
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('lessonFilter').value = '';
+  document.getElementById('sourceCountFilter').value = '0';
+  document.getElementById('statusFilter').value = '';
+  document.getElementById('qtypeFilter').value = '';
+  applyFilters();
+});
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (currentPage > 1) { currentPage--; renderPage(); window.scrollTo(0,0); }
+});
+document.getElementById('nextBtn').addEventListener('click', () => {
+  const totalPg = Math.ceil(filtered.length / PAGE_SIZE);
+  if (currentPage < totalPg) { currentPage++; renderPage(); window.scrollTo(0,0); }
+});
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Load data
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+async function loadData() {
+  const loader  = document.getElementById('loaderWrap');
+  const list    = document.getElementById('clusterList');
+  const statusEl = document.getElementById('dataStatus');
+
+  try {
+    const res = await fetch('../data/clusters.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    statusEl.textContent = 'â€” parsingâ€¦';
+    allClusters = await res.json();
+    filtered    = allClusters;
+
+    populateLessons();
+    updateStats();
+    loader.style.display = 'none';
+    statusEl.textContent = '';
+    renderPage();
+  } catch (err) {
+    loader.innerHTML = `
+      <div style="color:var(--err); text-align:center; padding:40px 20px;">
+        <div style="font-size:32px; margin-bottom:12px;">âš ï¸</div>
+        <div style="font-weight:700; font-size:16px; margin-bottom:8px;">Failed to load clusters.json</div>
+        <div style="color:var(--mut); font-size:13px;">${escHtml(err.message)}</div>
+        <div style="margin-top:12px; font-size:12px; color:var(--mut);">
+          Make sure the file exists at <code>../data/clusters.json</code><br>
+          and this page is served from a local server (not opened as file://).
+        </div>
+      </div>`;
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
+

@@ -1,0 +1,540 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>ðŸ“‹ Forensic MCQ Review Index</title>
+<script>try{var t=localStorage.getItem("rev_theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<style>
+/* â”€â”€ CSS Variables â”€â”€ */
+:root{
+  --bg:#f3f4f6;--card:#ffffff;--line:#b8c0cc;--txt:#111827;--mut:#6b7280;
+  --ok:#0f6b3f;--bad:#b42318;--blue:#1d4ed8;--hdr:#e3e8ef;
+  --red-bg:#fde4e1;--red-fg:#8f1d12;
+  --amb-bg:#fff1c2;--amb-fg:#7c4a00;
+  --grn-bg:#dcf5e6;--grn-fg:#0f6b3f;
+  --pill-bg:#e8ecf5;--pill-txt:#374151;
+  --bar-track:#e5e7eb;
+  --shadow:0 2px 8px rgba(0,0,0,.08);
+  --radius:10px;
+  color-scheme:light;
+}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]){
+  --bg:#0f1420;--card:#1a2130;--line:#2e3a52;--txt:#f0f4fc;--mut:#9dafc8;
+  --ok:#63e3a4;--bad:#ff8f85;--blue:#7eb3ff;--hdr:#212d42;
+  --red-bg:#4a1d1a;--red-fg:#ffb4ab;
+  --amb-bg:#3d2f07;--amb-fg:#ffe7a0;
+  --grn-bg:#0d2e1f;--grn-fg:#8ff0bf;
+  --pill-bg:#1e2c42;--pill-txt:#c8d8f0;
+  --bar-track:#2a3650;
+  --shadow:0 2px 8px rgba(0,0,0,.4);
+  color-scheme:dark;
+}}
+html[data-theme="light"]{
+  --bg:#f3f4f6;--card:#ffffff;--line:#b8c0cc;--txt:#111827;--mut:#6b7280;
+  --ok:#0f6b3f;--bad:#b42318;--blue:#1d4ed8;--hdr:#e3e8ef;
+  --red-bg:#fde4e1;--red-fg:#8f1d12;
+  --amb-bg:#fff1c2;--amb-fg:#7c4a00;
+  --grn-bg:#dcf5e6;--grn-fg:#0f6b3f;
+  --pill-bg:#e8ecf5;--pill-txt:#374151;
+  --bar-track:#e5e7eb;
+  color-scheme:light;
+}
+html[data-theme="dark"]{
+  --bg:#0f1420;--card:#1a2130;--line:#2e3a52;--txt:#f0f4fc;--mut:#9dafc8;
+  --ok:#63e3a4;--bad:#ff8f85;--blue:#7eb3ff;--hdr:#212d42;
+  --red-bg:#4a1d1a;--red-fg:#ffb4ab;
+  --amb-bg:#3d2f07;--amb-fg:#ffe7a0;
+  --grn-bg:#0d2e1f;--grn-fg:#8ff0bf;
+  --pill-bg:#1e2c42;--pill-txt:#c8d8f0;
+  --bar-track:#2a3650;
+  color-scheme:dark;
+}
+
+/* â”€â”€ Reset & Base â”€â”€ */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--txt);
+  font:15px/1.55 system-ui,"Segoe UI",Arial,sans-serif;
+  min-height:100vh;padding:0 0 40px;
+}
+
+/* â”€â”€ Top Header â”€â”€ */
+.page-header{
+  background:var(--card);border-bottom:1px solid var(--line);
+  box-shadow:var(--shadow);padding:18px 24px 14px;
+  position:sticky;top:0;z-index:100;
+}
+.header-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.header-top h1{font-size:1.35rem;font-weight:800;letter-spacing:-.02em;flex:1 1 auto}
+.header-top h1 span{color:var(--blue)}
+
+/* â”€â”€ Stat Pills â”€â”€ */
+.stats-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0}
+.stat-pill{
+  background:var(--pill-bg);color:var(--pill-txt);
+  border:1px solid var(--line);border-radius:20px;
+  padding:4px 12px;font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;
+}
+.stat-pill .val{font-size:15px;font-weight:800;color:var(--txt)}
+.stat-pill.grn .val{color:var(--ok)}
+.stat-pill.red .val{color:var(--bad)}
+.stat-pill.blu .val{color:var(--blue)}
+.stat-pill.amb .val{color:var(--amb-fg)}
+
+/* â”€â”€ Theme Button â”€â”€ */
+#themeBtn{
+  font:inherit;font-weight:700;font-size:13px;
+  color:var(--txt);background:var(--pill-bg);
+  padding:5px 14px;border:1px solid var(--line);
+  border-radius:20px;cursor:pointer;white-space:nowrap;
+  transition:background .15s;
+}
+#themeBtn:hover{background:var(--hdr)}
+
+/* â”€â”€ Main Content Wrapper â”€â”€ */
+.content{padding:20px 24px}
+
+/* â”€â”€ Note â”€â”€ */
+.note{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 16px;margin-bottom:18px;color:var(--mut);font-size:14px;
+  line-height:1.6;
+}
+.note b{color:var(--txt)}
+
+/* â”€â”€ Controls Bar â”€â”€ */
+.controls{
+  display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+  margin-bottom:14px;
+}
+.controls input[type=search]{
+  flex:1 1 220px;padding:8px 12px;
+  border:1px solid var(--line);border-radius:8px;
+  background:var(--card);color:var(--txt);font:inherit;font-size:14px;
+  outline:none;transition:border-color .15s;
+}
+.controls input[type=search]:focus{border-color:var(--blue)}
+.controls select{
+  padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+  background:var(--card);color:var(--txt);font:inherit;font-size:14px;
+  cursor:pointer;outline:none;
+}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border:1px solid var(--line);border-radius:8px;
+  background:var(--card);color:var(--txt);font:inherit;font-size:14px;font-weight:600;
+  cursor:pointer;white-space:nowrap;transition:background .15s;
+}
+.btn:hover{background:var(--hdr)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{opacity:.9}
+#rowCount{color:var(--mut);font-size:13px;padding:6px 2px;white-space:nowrap}
+
+/* â”€â”€ Table Wrapper â”€â”€ */
+.table-wrap{
+  overflow-x:auto;border-radius:var(--radius);
+  border:1px solid var(--line);box-shadow:var(--shadow);
+}
+table{
+  border-collapse:collapse;width:100%;min-width:900px;
+  background:var(--card);color:var(--txt);
+}
+thead th{
+  position:sticky;top:0;background:var(--hdr);
+  border-bottom:2px solid var(--line);
+  padding:9px 11px;text-align:left;font-weight:700;
+  font-size:13px;white-space:nowrap;
+  cursor:pointer;user-select:none;
+  transition:background .12s;
+}
+thead th:hover{background:var(--line)}
+thead th.sorted-asc::after{content:" â–²";font-size:10px;opacity:.7}
+thead th.sorted-desc::after{content:" â–¼";font-size:10px;opacity:.7}
+thead th.n,td.n{text-align:right;font-variant-numeric:tabular-nums}
+
+tbody tr{border-bottom:1px solid var(--line);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover td{background:var(--hdr)!important}
+
+td{padding:8px 11px;vertical-align:middle;font-size:14px}
+td.n{font-weight:700}
+td.z{color:var(--mut);font-weight:400}
+td.w{background:var(--amb-bg);color:var(--amb-fg)}
+
+tfoot tr td{
+  background:var(--hdr);font-weight:800;
+  border-top:2px solid var(--line);font-size:13px;padding:9px 11px;
+}
+tfoot td.n{font-variant-numeric:tabular-nums}
+
+/* â”€â”€ File Link â”€â”€ */
+.file-link{color:var(--blue);font-weight:600;text-decoration:none;font-size:13.5px}
+.file-link:hover{text-decoration:underline}
+
+/* â”€â”€ Flag Badges â”€â”€ */
+.flag{
+  display:inline-block;border-radius:12px;
+  padding:2px 9px;margin:2px 3px 2px 0;
+  font-size:11.5px;font-weight:700;letter-spacing:.01em;white-space:nowrap;
+}
+.flag-ok{background:var(--grn-bg);color:var(--grn-fg)}
+.flag-warn{background:var(--amb-bg);color:var(--amb-fg);border:1px solid var(--amb-fg)}
+.flag-bad{background:var(--red-bg);color:var(--red-fg);border:1px solid var(--red-fg)}
+
+/* â”€â”€ Progress Bar â”€â”€ */
+.pbar-wrap{display:flex;align-items:center;gap:6px;min-width:90px}
+.pbar-track{
+  flex:1;height:8px;border-radius:4px;
+  background:var(--bar-track);overflow:hidden;min-width:50px;
+}
+.pbar-fill{height:100%;border-radius:4px;transition:width .3s}
+.pbar-fill.grn{background:#16a34a}
+.pbar-fill.ylw{background:#d97706}
+.pbar-fill.red{background:#dc2626}
+.pbar-label{font-size:12px;font-weight:700;min-width:34px;text-align:right}
+.pbar-label.grn{color:#16a34a}
+.pbar-label.ylw{color:#d97706}
+.pbar-label.red{color:#dc2626}
+
+/* â”€â”€ Toxo Bar â”€â”€ */
+.toxo-wrap{display:flex;align-items:center;gap:5px}
+.toxo-bar{height:6px;border-radius:3px;background:#7c3aed;min-width:2px}
+.toxo-pct{font-size:12px;font-weight:700;color:var(--mut);min-width:30px;text-align:right}
+
+/* â”€â”€ No-results row â”€â”€ */
+#noResults{display:none;text-align:center;padding:28px;color:var(--mut);font-style:italic}
+
+/* â”€â”€ Footer link â”€â”€ */
+.footer{margin-top:28px;text-align:center;color:var(--mut);font-size:14px}
+.footer a{color:var(--blue);font-weight:700;text-decoration:none}
+.footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<!-- â”€â”€â”€ Sticky Header â”€â”€â”€ -->
+<header class="page-header">
+  <div class="header-top">
+    <h1>ðŸ“‹ Forensic MCQ <span>Review Index</span></h1>
+    <button id="themeBtn">Theme: auto</button>
+  </div>
+  <div class="stats-bar" id="statsBar">
+    <!-- filled by JS -->
+  </div>
+</header>
+
+<!-- â”€â”€â”€ Main Content â”€â”€â”€ -->
+<main class="content">
+
+  <!-- Note -->
+  <div class="note">
+    Open a file, check each page against the original image on the left, press <b>OK</b> or <b>Problem</b> on each question
+    (or <b>page OK</b> for a clean page), optionally set the correct answer and a note. Your marks are kept in this browser;
+    press <b>Export CSV</b> inside each file to save them.
+    Question counts here are after removing the 1-page overlap duplicates inside each file.
+    They are <b>NOT</b> the final dedup across files.
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <input type="search" id="searchInput" placeholder="ðŸ”  Search filenameâ€¦" autocomplete="off">
+    <select id="filterSel">
+      <option value="all">All files</option>
+      <option value="ok">OK only</option>
+      <option value="flags">Has flags</option>
+      <option value="toxo">Has Toxo Qs</option>
+      <option value="lowconf">Has Low-Confidence</option>
+    </select>
+    <span id="rowCount"></span>
+    <button class="btn primary" id="exportBtn">â¬‡ Export CSV</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="mainTable">
+      <thead>
+        <tr>
+          <th class="n" data-col="0">#</th>
+          <th data-col="1">File</th>
+          <th class="n" data-col="2">Pages</th>
+          <th class="n" data-col="3">Questions</th>
+          <th class="n" data-col="4">Answered</th>
+          <th class="n" data-col="5">No Answer</th>
+          <th data-col="6">Answered %</th>
+          <th class="n" data-col="7">Toxo Qs</th>
+          <th data-col="8">Toxo %</th>
+          <th class="n" data-col="9">Borderline</th>
+          <th class="n" data-col="10">Low Conf.</th>
+          <th class="n" data-col="11">Empty Pgs</th>
+          <th class="n" data-col="12">Keys</th>
+          <th data-col="13">Attention Flags</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+      </tbody>
+      <tfoot id="tableFoot">
+      </tfoot>
+    </table>
+    <div id="noResults">No matching files found.</div>
+  </div>
+
+  <div class="footer">
+    <a href="../index.html">â†’ Open Advanced MCQ Explorer (visualizer)</a>
+  </div>
+
+</main>
+
+<script>
+(function(){
+'use strict';
+
+/* â”€â”€ Data â”€â”€ */
+const ROWS = [
+  {n:1,  file:"3rd year exam and model answers(1).pdf",                                    href:"files/3rd-year-exam-and-model-answers-1_08a96b.html",          pages:50,  qs:270,  shown:270, no_ans:0,    toxo:1,   border:1, lc:0, empty:0,  keys:0,  flags:["ok"]},
+  {n:2,  file:"Dr._Amin mcq - @Medicine_Way .pdf",                                         href:"files/dr-amin-mcq-medicine-way_0de4c0.html",                  pages:101, qs:590,  shown:400, no_ans:190,  toxo:158, border:0, lc:2, empty:0,  keys:21, flags:["low-confidence records"]},
+  {n:3,  file:"End Semester forensic 2020.pdf",                                             href:"files/end-semester-forensic-2020_dd97c0.html",                pages:10,  qs:54,   shown:49,  no_ans:5,    toxo:0,   border:0, lc:0, empty:1,  keys:0,  flags:["ok"]},
+  {n:4,  file:"End semester 2024 forensic .pdf",                                            href:"files/end-semester-2024-forensic_495972.html",                pages:9,   qs:50,   shown:50,  no_ans:0,    toxo:1,   border:0, lc:0, empty:0,  keys:0,  flags:["ok"]},
+  {n:5,  file:"Forensic & Toxicology [MCQ].pdf",                                           href:"files/forensic-toxicology-mcq_601424.html",                   pages:118, qs:1342, shown:37,  no_ans:1305, toxo:507, border:0, lc:0, empty:4,  keys:3,  flags:["1 run(s) of 2+ empty pages"]},
+  {n:6,  file:"Forensic 2023.pdf",                                                          href:"files/forensic-2023_2ce1af.html",                             pages:9,   qs:41,   shown:32,  no_ans:9,    toxo:0,   border:0, lc:0, empty:0,  keys:0,  flags:["ok"]},
+  {n:7,  file:"Forensic questions dr . yasser.pdf",                                         href:"files/forensic-questions-dr-yasser_4fe5a7.html",              pages:36,  qs:289,  shown:289, no_ans:0,    toxo:6,   border:2, lc:0, empty:6,  keys:7,  flags:["1 run(s) of 2+ empty pages"]},
+  {n:8,  file:"Forensic_Department_cases_answers_2012.pdf",                                 href:"files/forensic-department-cases-answers-20_4ac5ca.html",      pages:27,  qs:192,  shown:166, no_ans:26,   toxo:76,  border:0, lc:0, empty:0,  keys:0,  flags:["ok"]},
+  {n:9,  file:"MCQ_Book_Cairo_university - @Medicine_Way .pdf",                             href:"files/mcq-book-cairo-university-medicine-w_a6fe7b.html",      pages:179, qs:1720, shown:1055,no_ans:665,  toxo:687, border:0, lc:0, empty:8,  keys:29, flags:["2 run(s) of 2+ empty pages"]},
+  {n:10, file:"MCQ_Forensic_Toxo_Dr.Moez_Sholfet.pdf",                                     href:"files/mcq-forensic-toxo-dr-moez-sholfet_3e4584.html",         pages:82,  qs:347,  shown:118, no_ans:229,  toxo:119, border:0, lc:0, empty:9,  keys:17, flags:["3 run(s) of 2+ empty pages"]},
+  {n:11, file:"MCQs Forensic Ø¹ÙŠÙ† Ø´Ù…Ø³.pdf",                                                href:"files/mcqs-forensic_0325a2.html",                             pages:104, qs:554,  shown:239, no_ans:315,  toxo:5,   border:0, lc:0, empty:15, keys:13, flags:["4 run(s) of 2+ empty pages"]},
+  {n:12, file:"Medad_Forensic_Oral - @Medicine_Way .pdf",                                  href:"files/medad-forensic-oral-medicine-way_94cbe6.html",           pages:9,   qs:190,  shown:0,   no_ans:190,  toxo:114, border:0, lc:0, empty:1,  keys:0,  flags:["ok"]},
+  {n:13, file:"Yacout_toxo_and_forensic.pdf",                                               href:"files/yacout-toxo-and-forensic_628618.html",                  pages:87,  qs:212,  shown:200, no_ans:12,   toxo:48,  border:0, lc:0, empty:15, keys:0,  flags:["2 run(s) of 2+ empty pages"]},
+  {n:14, file:"Ø§Ø³Ø¦Ù„Ù‡_ÙˆØ§Ù…ØªØ­Ø§Ù†Ø§Øª_ÙØ±ÙˆÙ†Ø³ÙŠÙƒ_@Medicine_Way_.pdf",                               href:"files/medicine-way_2e2150.html",                              pages:42,  qs:602,  shown:2,   no_ans:600,  toxo:242, border:0, lc:0, empty:2,  keys:0,  flags:["ok"]},
+  {n:15, file:"Ø¯. Ù…Ø¬Ø¯ÙŠ Ø§Ù„Ø´Ø±ÙŠÙ MCQ_- @Medicine_Way .pdf",                                  href:"files/mcq-medicine-way_c0053b.html",                          pages:68,  qs:795,  shown:149, no_ans:646,  toxo:443, border:0, lc:1, empty:6,  keys:8,  flags:["2 run(s) of 2+ empty pages","low-confidence records"]},
+  {n:16, file:"ÙƒØªØ§Ø¨ Ø§Ù„Ù‚Ø³Ù… MCQs Ø´Ø±Ø¹ÙŠ 2024.pdf",                                            href:"files/mcqs-2024_606ef5.html",                                 pages:170, qs:867,  shown:214, no_ans:653,  toxo:0,   border:2, lc:0, empty:1,  keys:14, flags:["ok"]},
+  {n:17, file:"ÙƒØªØ§Ø¨_Ø§Ø³Ø¦Ù„Ù‡_Ù‚Ø³Ù…_Ù‚ØµØ±_Ø§Ù„Ø¹ÙŠÙ†ÙŠ_Ø§Ù„Ø·Ø¨_Ø§Ù„Ø´Ø±Ø¹Ù‰_2012_Ø§Ù„Ù‚Ø§Ù‡Ø±Ù‡_Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª_Ùˆ_Ø­Ù„.pdf",  href:"files/2012_43fed0.html",                                       pages:246, qs:1971, shown:1037,no_ans:934,  toxo:919, border:0, lc:0, empty:7,  keys:39, flags:["2 run(s) of 2+ empty pages"]},
+];
+
+/* â”€â”€ Totals â”€â”€ */
+const TOT = ROWS.reduce((a,r)=>{
+  a.pages+=r.pages; a.qs+=r.qs; a.shown+=r.shown;
+  a.no_ans+=r.no_ans; a.toxo+=r.toxo; a.border+=r.border;
+  a.lc+=r.lc; a.empty+=r.empty; a.keys+=r.keys;
+  return a;
+},{pages:0,qs:0,shown:0,no_ans:0,toxo:0,border:0,lc:0,empty:0,keys:0});
+
+const flaggedCount = ROWS.filter(r=>!r.flags.includes("ok")).length;
+
+/* â”€â”€ Stat Pills â”€â”€ */
+function buildStats(){
+  const pct = TOT.qs>0?Math.round(TOT.shown/TOT.qs*100):0;
+  const bar = document.getElementById('statsBar');
+  bar.innerHTML = [
+    `<span class="stat-pill"><span class="val">${ROWS.length}</span> files</span>`,
+    `<span class="stat-pill blu"><span class="val">${TOT.qs.toLocaleString()}</span> total Qs</span>`,
+    `<span class="stat-pill grn"><span class="val">${TOT.shown.toLocaleString()}</span> answered (${pct}%)</span>`,
+    `<span class="stat-pill"><span class="val">${TOT.toxo.toLocaleString()}</span> Toxo Qs</span>`,
+    `<span class="stat-pill ${flaggedCount>0?'amb':'grn'}"><span class="val">${flaggedCount}</span> files with flags</span>`,
+  ].join('');
+}
+
+/* â”€â”€ Progress bar helper â”€â”€ */
+function pbarHTML(shown, qs){
+  const pct = qs>0 ? Math.round(shown/qs*100) : 0;
+  const cls = pct>=80?'grn':pct>=40?'ylw':'red';
+  return `<div class="pbar-wrap">
+    <div class="pbar-track"><div class="pbar-fill ${cls}" style="width:${pct}%"></div></div>
+    <span class="pbar-label ${cls}">${pct}%</span>
+  </div>`;
+}
+
+/* â”€â”€ Toxo bar helper â”€â”€ */
+function toxoHTML(toxo, qs){
+  const pct = qs>0 ? Math.round(toxo/qs*100) : 0;
+  const w = Math.max(pct,2);
+  return `<div class="toxo-wrap">
+    <div class="toxo-bar" style="width:${w}px"></div>
+    <span class="toxo-pct">${pct}%</span>
+  </div>`;
+}
+
+/* â”€â”€ Flag badge helper â”€â”€ */
+function flagBadges(flags){
+  return flags.map(f=>{
+    if(f==="ok") return `<span class="flag flag-ok">âœ“ ok</span>`;
+    if(f.includes("low-confidence")) return `<span class="flag flag-bad">${esc(f)}</span>`;
+    return `<span class="flag flag-warn">${esc(f)}</span>`;
+  }).join('');
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function num(v){return v===0?`<td class="n z">0</td>`:`<td class="n">${v.toLocaleString()}</td>`}
+
+/* â”€â”€ Render a data row â”€â”€ */
+function rowHTML(r){
+  const answerPct = r.qs>0 ? r.shown/r.qs : 0;
+  const isOK = r.flags.includes("ok");
+  return `<tr data-n="${r.n}" data-file="${esc(r.file.toLowerCase())}" data-ok="${isOK}" data-toxo="${r.toxo}" data-lc="${r.lc}" data-ans="${answerPct.toFixed(4)}">
+    <td class="n">${r.n}</td>
+    <td><a class="file-link" href="${r.href}">${esc(r.file)}</a></td>
+    <td class="n">${r.pages}</td>
+    <td class="n">${r.qs.toLocaleString()}</td>
+    ${num(r.shown)}
+    ${num(r.no_ans)}
+    <td>${pbarHTML(r.shown,r.qs)}</td>
+    ${num(r.toxo)}
+    <td>${toxoHTML(r.toxo,r.qs)}</td>
+    ${num(r.border)}
+    <td class="n${r.lc>0?' w':' z'}">${r.lc}</td>
+    <td class="n${r.empty>0?' w':' z'}">${r.empty}</td>
+    ${num(r.keys)}
+    <td>${flagBadges(r.flags)}</td>
+  </tr>`;
+}
+
+/* â”€â”€ Render footer totals â”€â”€ */
+function buildFoot(visRows){
+  const t = visRows.reduce((a,r)=>{
+    a.pages+=r.pages; a.qs+=r.qs; a.shown+=r.shown;
+    a.no_ans+=r.no_ans; a.toxo+=r.toxo; a.border+=r.border;
+    a.lc+=r.lc; a.empty+=r.empty; a.keys+=r.keys;
+    return a;
+  },{pages:0,qs:0,shown:0,no_ans:0,toxo:0,border:0,lc:0,empty:0,keys:0});
+
+  const pct = t.qs>0?Math.round(t.shown/t.qs*100):0;
+  const cls = pct>=80?'grn':pct>=40?'ylw':'red';
+  document.getElementById('tableFoot').innerHTML = `<tr>
+    <td class="n">&nbsp;</td>
+    <td><b>Totals (${visRows.length} file${visRows.length!==1?'s':''})</b></td>
+    <td class="n">${t.pages.toLocaleString()}</td>
+    <td class="n">${t.qs.toLocaleString()}</td>
+    <td class="n">${t.shown.toLocaleString()}</td>
+    <td class="n">${t.no_ans.toLocaleString()}</td>
+    <td><div class="pbar-wrap">
+      <div class="pbar-track"><div class="pbar-fill ${cls}" style="width:${pct}%"></div></div>
+      <span class="pbar-label ${cls}">${pct}%</span>
+    </div></td>
+    <td class="n">${t.toxo.toLocaleString()}</td>
+    <td><span class="toxo-pct">${t.qs>0?Math.round(t.toxo/t.qs*100):0}%</span></td>
+    <td class="n">${t.border.toLocaleString()}</td>
+    <td class="n">${t.lc.toLocaleString()}</td>
+    <td class="n">${t.empty.toLocaleString()}</td>
+    <td class="n">${t.keys.toLocaleString()}</td>
+    <td></td>
+  </tr>`;
+}
+
+/* â”€â”€ State â”€â”€ */
+let sortCol = 0, sortDir = 1; // 0=# asc
+
+/* â”€â”€ Filter & render â”€â”€ */
+function getVisible(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const f = document.getElementById('filterSel').value;
+  return ROWS.filter(r=>{
+    if(q && !r.file.toLowerCase().includes(q)) return false;
+    if(f==="ok"      && !r.flags.includes("ok")) return false;
+    if(f==="flags"   &&  r.flags.includes("ok")) return false;
+    if(f==="toxo"    &&  r.toxo===0) return false;
+    if(f==="lowconf" &&  r.lc===0)  return false;
+    return true;
+  });
+}
+
+function sortRows(rows){
+  return [...rows].sort((a,b)=>{
+    let va,vb;
+    switch(sortCol){
+      case 0:  va=a.n;      vb=b.n;      break;
+      case 1:  va=a.file;   vb=b.file;   break;
+      case 2:  va=a.pages;  vb=b.pages;  break;
+      case 3:  va=a.qs;     vb=b.qs;     break;
+      case 4:  va=a.shown;  vb=b.shown;  break;
+      case 5:  va=a.no_ans; vb=b.no_ans; break;
+      case 6:  va=a.qs>0?a.shown/a.qs:0; vb=b.qs>0?b.shown/b.qs:0; break;
+      case 7:  va=a.toxo;   vb=b.toxo;   break;
+      case 8:  va=a.qs>0?a.toxo/a.qs:0;  vb=b.qs>0?b.toxo/b.qs:0;  break;
+      case 9:  va=a.border; vb=b.border; break;
+      case 10: va=a.lc;     vb=b.lc;     break;
+      case 11: va=a.empty;  vb=b.empty;  break;
+      case 12: va=a.keys;   vb=b.keys;   break;
+      case 13: va=a.flags.join(); vb=b.flags.join(); break;
+      default: va=a.n; vb=b.n;
+    }
+    if(va<vb) return -sortDir;
+    if(va>vb) return sortDir;
+    return 0;
+  });
+}
+
+function render(){
+  const vis = getVisible();
+  const sorted = sortRows(vis);
+  document.getElementById('tableBody').innerHTML = sorted.map(rowHTML).join('');
+  buildFoot(vis);
+  const cnt = document.getElementById('rowCount');
+  cnt.textContent = vis.length===ROWS.length ? `${ROWS.length} files` : `${vis.length} of ${ROWS.length} files`;
+  document.getElementById('noResults').style.display = vis.length===0?'block':'none';
+  // Update sort indicators
+  document.querySelectorAll('thead th').forEach(th=>{
+    th.classList.remove('sorted-asc','sorted-desc');
+    if(parseInt(th.dataset.col)===sortCol){
+      th.classList.add(sortDir===1?'sorted-asc':'sorted-desc');
+    }
+  });
+}
+
+/* â”€â”€ Sort on header click â”€â”€ */
+document.querySelectorAll('thead th[data-col]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const col = parseInt(th.dataset.col);
+    if(sortCol===col) sortDir*=-1; else{sortCol=col;sortDir=1;}
+    render();
+  });
+});
+
+/* â”€â”€ Search & filter â”€â”€ */
+document.getElementById('searchInput').addEventListener('input', render);
+document.getElementById('filterSel').addEventListener('change', render);
+
+/* â”€â”€ Export CSV â”€â”€ */
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const vis = getVisible();
+  const sorted = sortRows(vis);
+  const hdr = ['#','File','Pages','Questions','Answered','No Answer','Answered%','Toxo Qs','Toxo%','Borderline','Low Conf','Empty Pages','Keys','Flags'];
+  const csvRow = r=>{
+    const ap = r.qs>0?Math.round(r.shown/r.qs*100):0;
+    const tp = r.qs>0?Math.round(r.toxo/r.qs*100):0;
+    return [r.n,`"${r.file}"`,r.pages,r.qs,r.shown,r.no_ans,ap+'%',r.toxo,tp+'%',r.border,r.lc,r.empty,r.keys,`"${r.flags.join('; ')}"`].join(',');
+  };
+  const csv = [hdr.join(','), ...sorted.map(csvRow)].join('\r\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='forensic_mcq_review.csv';
+  a.click();
+});
+
+/* â”€â”€ Theme toggle â”€â”€ */
+(function(){
+  const btn = document.getElementById('themeBtn');
+  function cur(){return document.documentElement.getAttribute('data-theme')||'auto';}
+  function label(){
+    const c=cur();
+    btn.textContent = c==='dark'?'ðŸŒ™ Dark':c==='light'?'â˜€ï¸ Light':'ðŸ”† Auto';
+  }
+  btn.addEventListener('click',()=>{
+    const next={auto:'light',light:'dark',dark:'auto'}[cur()];
+    if(next==='auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme',next);
+    try{if(next==='auto')localStorage.removeItem('rev_theme');else localStorage.setItem('rev_theme',next);}catch(e){}
+    label();
+  });
+  label();
+})();
+
+/* â”€â”€ Init â”€â”€ */
+buildStats();
+render();
+
+})();
+</script>
+</body>
+</html>
+
