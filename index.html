@@ -57,6 +57,9 @@ main{padding:14px 18px;max-width:1700px;margin:0 auto}
 .chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 .chip.lesson-hi{background:var(--suc-bg);color:var(--suc);border-color:var(--suc-bd);font-weight:700}
 .chip.lesson-hi.on{background:var(--suc);color:#fff;border-color:var(--suc)}
+.chip.search-hi{background:#fef3c7;color:#92400e;border-color:#fcd34d;font-weight:700}
+[data-theme=dark] .chip.search-hi{background:#78350f;color:#fde68a;border-color:#b45309}
+.chip.search-hi.on{background:#f59e0b;color:#fff;border-color:#d97706}
 
 /* Compare Layout */
 .cmp{display:grid;grid-template-columns:1fr 1.1fr;gap:14px;align-items:start}
@@ -74,10 +77,18 @@ main{padding:14px 18px;max-width:1700px;margin:0 auto}
 .vc{position:absolute;transform-origin:center center}
 .vc img{max-width:none;display:block;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 
-/* Q Cards */
-.qcard{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:12px;margin-bottom:10px}
+/* Q Cards & Collapsing */
+.qcard{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:12px;margin-bottom:10px;transition:padding 0.15s ease}
 .qcard.conflict{border-left:3px solid var(--err)}
-.qhdr{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:7px}
+.qcard.collapsed{padding:8px 12px}
+.qcard.collapsed .opts,
+.qcard.collapsed .ansbox,
+.qcard.collapsed .qfoot{display:none !important}
+.qcard.collapsed .qtxt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0;font-size:13px;color:var(--mut);cursor:pointer}
+.qcard.collapsed .qhdr{margin-bottom:3px}
+.qhdr{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:7px;cursor:pointer;user-select:none}
+.q-toggle-btn{background:transparent;border:none;padding:2px 5px;font-size:11px;cursor:pointer;color:var(--mut);border-radius:4px;line-height:1}
+.q-toggle-btn:hover{background:var(--tag-bg);color:var(--txt)}
 .badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--tag-bg);color:var(--tag);text-transform:uppercase}
 .badge.g{background:var(--suc-bg);color:var(--suc)}
 .badge.a{background:var(--warn-bg);color:var(--warn)}
@@ -181,6 +192,12 @@ ol li{margin-left:18px;margin-bottom:4px}
       </div>
     </div>
 
+    <!-- Search within current book -->
+    <div style="position:relative;display:flex;align-items:center;">
+      <input type="text" id="cmp-search" placeholder="🔍 Search in this book..." style="min-width:210px;padding:5px 26px 5px 8px;">
+      <button id="cmp-search-clear" type="button" style="display:none;position:absolute;right:5px;border:none;background:transparent;color:var(--mut);cursor:pointer;padding:2px 4px;font-size:11px" title="Clear search">✕</button>
+    </div>
+
     <!-- Export Selected Lessons for this Book -->
     <button id="xp-book-btn" class="pri" title="Export all questions of the selected lessons in this book">📥 Export Book Lessons</button>
 
@@ -231,7 +248,10 @@ ol li{margin-left:18px;margin-bottom:4px}
     <div class="pane">
       <div class="pane-hdr">
         <span>Extracted Questions (<span id="qcnt">0</span>)</span>
-        <button class="pri" id="rfrsh">🔄 Refresh</button>
+        <div style="display:flex;gap:5px;align-items:center">
+          <button id="btn-toggle-all-t1" style="font-size:11px;padding:3px 8px" title="Collapse or expand all questions">⊟ Collapse All</button>
+          <button class="pri" id="rfrsh">🔄 Refresh</button>
+        </div>
       </div>
       <div id="qcont"><p style="color:var(--mut);padding:18px">Loading...</p></div>
     </div>
@@ -305,6 +325,7 @@ ol li{margin-left:18px;margin-bottom:4px}
       <option value="matching">Matching</option>
     </select>
     <button class="pri" id="qb-go">Search</button>
+    <button id="btn-toggle-all-qb" style="font-size:12px;padding:5px 9px" title="Collapse or expand all questions">⊟ Collapse All</button>
     <span id="qb-cnt" style="font-weight:700;font-size:13px"></span>
   </div>
   <div id="qb-cont"><p style="color:var(--mut)">Loading...</p></div>
@@ -320,8 +341,10 @@ ol li{margin-left:18px;margin-bottom:4px}
   <div class="gsec">
     <h3>🌐 Online Sharing &amp; Exporting Lessons per Book</h3>
     <ol>
+      <li><b>Search in Tab 1</b>: Type any keyword or question number in the search box in Tab 1 to filter questions and highlight matching pages across the book.</li>
+      <li><b>Collapse / Expand MCQs</b>: Click any MCQ's header or the <b>▼ / ▶</b> button to collapse it into a single clean line. Use <b>"⊟ Collapse All"</b> to collapse or expand all questions at once.</li>
       <li><b>Select Multiple Lessons</b>: Click on the <b>Lessons</b> dropdown in Tab 1, 2, or 3 to check one or more lessons simultaneously.</li>
-      <li><b>Export Book Lessons</b>: Click <b>"📥 Export Book Lessons"</b> in Tab 1 to download all questions for your selected lessons from the currently opened book as a standalone JSON or text study file.</li>
+      <li><b>Export Book Lessons</b>: Click <b>"📥 Export Book Lessons"</b> in Tab 1 to download all questions for your selected lessons from the currently opened book as a standalone JSON file.</li>
       <li><b>Review &amp; Edit</b>: Review questions in Tab 1 or 3 and click <b>"✏️ Edit"</b> to correct answers, lessons, or question text.</li>
       <li><b>Export Edits</b>: Click "📥 Export Edits" in the top bar to export collaborative reviewer corrections.</li>
     </ol>
@@ -755,15 +778,91 @@ function imgUrlForPage(pg){
   return curBook.img_dir+'/p'+String(pg).padStart(4,'0')+'.jpg';
 }
 
-function renderChips(){
-  var hasActiveFilter = selectedLessonsCmp.size > 0 && selectedLessonsCmp.size < allLessons.length;
-  var lessonPages=new Set();
-  if(hasActiveFilter){
-    curBkQs.forEach(function(q){
-      var l=(q.lesson||'').trim();
-      if(selectedLessonsCmp.has(l)) lessonPages.add(q.source_page);
-    });
+/* ─── COLLAPSE HELPERS ─── */
+function toggleCard(cardEl){
+  if(!cardEl) return;
+  cardEl.classList.toggle('collapsed');
+  var btn = cardEl.querySelector('.q-toggle-btn');
+  if(btn) btn.textContent = cardEl.classList.contains('collapsed') ? '▶' : '▼';
+}
+
+var allCollapsedT1 = false;
+function toggleAllT1(){
+  allCollapsedT1 = !allCollapsedT1;
+  var cards = document.querySelectorAll('#qcont .qcard');
+  cards.forEach(function(c){
+    if(allCollapsedT1){
+      c.classList.add('collapsed');
+      var btn = c.querySelector('.q-toggle-btn');
+      if(btn) btn.textContent = '▶';
+    } else {
+      c.classList.remove('collapsed');
+      var btn = c.querySelector('.q-toggle-btn');
+      if(btn) btn.textContent = '▼';
+    }
+  });
+  if(G('btn-toggle-all-t1')){
+    G('btn-toggle-all-t1').textContent = allCollapsedT1 ? '⊞ Expand All' : '⊟ Collapse All';
   }
+}
+
+var allCollapsedQb = false;
+function toggleAllQb(){
+  allCollapsedQb = !allCollapsedQb;
+  var cards = document.querySelectorAll('#qb-cont .qcard');
+  cards.forEach(function(c){
+    if(allCollapsedQb){
+      c.classList.add('collapsed');
+      var btn = c.querySelector('.q-toggle-btn');
+      if(btn) btn.textContent = '▶';
+    } else {
+      c.classList.remove('collapsed');
+      var btn = c.querySelector('.q-toggle-btn');
+      if(btn) btn.textContent = '▼';
+    }
+  });
+  if(G('btn-toggle-all-qb')){
+    G('btn-toggle-all-qb').textContent = allCollapsedQb ? '⊞ Expand All' : '⊟ Collapse All';
+  }
+}
+
+/* ─── SEARCH & FILTER HELPER ─── */
+function qMatchesFilter(q, searchStr, lessonSet){
+  if(lessonSet && lessonSet.size > 0 && lessonSet.size < allLessons.length){
+    var l = (q.lesson || '').trim();
+    if(!lessonSet.has(l)) return false;
+  }
+  if(searchStr){
+    var s = searchStr.toLowerCase().trim();
+    if(!s) return true;
+    if((q.question || '').toLowerCase().indexOf(s) !== -1) return true;
+    if(q.q_number && String(q.q_number).toLowerCase().indexOf(s) !== -1) return true;
+    if((q.answer_evidence || '').toLowerCase().indexOf(s) !== -1) return true;
+    if((q.explanation || '').toLowerCase().indexOf(s) !== -1) return true;
+    if((q.lesson || '').toLowerCase().indexOf(s) !== -1) return true;
+    if(q.options){
+      for(var k in q.options){
+        if(q.options[k] && q.options[k].toLowerCase().indexOf(s) !== -1) return true;
+      }
+    }
+    return false;
+  }
+  return true;
+}
+
+function renderChips(){
+  var searchStr = (G('cmp-search') ? G('cmp-search').value : '').trim();
+  var hasActiveLesson = selectedLessonsCmp.size > 0 && selectedLessonsCmp.size < allLessons.length;
+  var hasActiveSearch = Boolean(searchStr);
+
+  var matchingPages = new Set();
+  var totalMatchesInBook = 0;
+  curBkQs.forEach(function(q){
+    if(qMatchesFilter(q, searchStr, selectedLessonsCmp)){
+      matchingPages.add(q.source_page);
+      totalMatchesInBook++;
+    }
+  });
 
   var validPages = getQuestionPages();
   if(!validPages.length && curBook){
@@ -772,28 +871,33 @@ function renderChips(){
 
   var h='';
   validPages.forEach(function(p){
-    var isLH=hasActiveFilter && lessonPages.has(p);
-    var cls='chip'+(p===curPg?' on':'')+(isLH?' lesson-hi':'');
-    h+='<span class="'+cls+'" data-p="'+p+'" title="Page '+p+(isLH?' • Matches selected lessons':'')+'">p.'+p+'</span>';
+    var isLH = (hasActiveLesson || hasActiveSearch) && matchingPages.has(p);
+    var cls = 'chip' + (p === curPg ? ' on' : '') + (isLH ? (hasActiveSearch ? ' search-hi' : ' lesson-hi') : '');
+    var tip = 'Page ' + p + (isLH ? ' • Matches filter' : '');
+    h += '<span class="' + cls + '" data-p="' + p + '" title="' + tip + '">p.' + p + '</span>';
   });
-  G('pgchips').innerHTML=h;
+  G('pgchips').innerHTML = h;
   G('pgchips').querySelectorAll('.chip').forEach(function(c){
-    c.onclick=function(){curPg=parseInt(c.dataset.p);renderCurPage();};
+    c.onclick = function(){ curPg = parseInt(c.dataset.p); renderCurPage(); };
   });
 
-  G('pg-tot').textContent='/ '+validPages.length+' pages with Qs (book p.1-'+curBook.max_page+')';
+  if(hasActiveSearch || hasActiveLesson){
+    G('pg-tot').textContent = '/ ' + validPages.length + ' pages (' + totalMatchesInBook + ' matching in ' + matchingPages.size + ' pages)';
+  } else {
+    G('pg-tot').textContent = '/ ' + validPages.length + ' pages with Qs (book p.1-' + curBook.max_page + ')';
+  }
 }
 
 function renderCurPage(){
-  G('pg-in').value=curPg;
-  G('pg-ind').textContent='Page '+curPg+' of '+curBook.max_page;
+  G('pg-in').value = curPg;
+  G('pg-ind').textContent = 'Page ' + curPg + ' of ' + curBook.max_page;
 
   /* Image Loading: seamless support for both GitHub Pages and local server */
-  var img=G('pg-img');
+  var img = G('pg-img');
   var directSrc = imgUrlForPage(curPg);
-  var apiSrc = '/api/page_image?slug='+curBook.slug+'&page='+curPg;
+  var apiSrc = '/api/page_image?slug=' + curBook.slug + '&page=' + curPg;
 
-  img.onerror=function(){
+  img.onerror = function(){
     if(directSrc && img.src.indexOf(directSrc) === -1){
       img.src = directSrc;
     } else {
@@ -802,27 +906,52 @@ function renderCurPage(){
   };
   img.src = directSrc || apiSrc;
 
-  var hasActiveFilter = selectedLessonsCmp.size > 0 && selectedLessonsCmp.size < allLessons.length;
-  var qs=curBkQs.filter(function(q){
-    if(q.source_page!==curPg)return false;
-    if(hasActiveFilter){
-      var l=(q.lesson||'').trim();
-      if(!selectedLessonsCmp.has(l)) return false;
-    }
-    return true;
+  var searchStr = (G('cmp-search') ? G('cmp-search').value : '').trim();
+  var qs = curBkQs.filter(function(q){
+    if(q.source_page !== curPg) return false;
+    return qMatchesFilter(q, searchStr, selectedLessonsCmp);
   });
-  G('qcnt').textContent=qs.length;
+  G('qcnt').textContent = qs.length;
 
   if(!qs.length){
-    G('qcont').innerHTML='<div style="padding:20px;text-align:center;color:var(--mut)">No questions matching selected lessons on page '+curPg+'.</div>';
-  }else{
-    G('qcont').innerHTML=qs.map(function(q,i){return renderQCard(q,i);}).join('');
+    var matchingOtherPages = [];
+    if(searchStr || (selectedLessonsCmp.size > 0 && selectedLessonsCmp.size < allLessons.length)){
+      var seen = {};
+      curBkQs.forEach(function(q){
+        if(q.source_page !== curPg && qMatchesFilter(q, searchStr, selectedLessonsCmp)){
+          if(!seen[q.source_page]){
+            seen[q.source_page] = true;
+            matchingOtherPages.push(q.source_page);
+          }
+        }
+      });
+      matchingOtherPages.sort(function(a,b){return a-b;});
+    }
+
+    if(matchingOtherPages.length){
+      var firstOther = matchingOtherPages[0];
+      G('qcont').innerHTML = '<div style="padding:22px;text-align:center;color:var(--mut)">' +
+        '<p style="margin-bottom:8px;font-weight:600">No matching questions on page ' + curPg + '.</p>' +
+        '<p style="font-size:12px;margin-bottom:12px">Found matches on page(s): ' +
+        matchingOtherPages.slice(0, 10).map(function(p){
+          return '<a href="javascript:void(0)" onclick="curPg=' + p + ';renderCurPage();" style="color:var(--pri);font-weight:700;margin:0 4px">p.' + p + '</a>';
+        }).join('') + (matchingOtherPages.length > 10 ? ' ...' : '') + '</p>' +
+        '<button class="pri" onclick="curPg=' + firstOther + ';renderCurPage();">Jump to first match (p.' + firstOther + ')</button>' +
+        '</div>';
+    } else {
+      G('qcont').innerHTML = '<div style="padding:20px;text-align:center;color:var(--mut)">No questions matching selected filters on page ' + curPg + '.</div>';
+    }
+  } else {
+    G('qcont').innerHTML = qs.map(function(q){
+      var origIdx = curBkQs.indexOf(q);
+      return renderQCard(q, origIdx, allCollapsedT1);
+    }).join('');
   }
 
   renderChips();
 }
 
-function renderQCard(q,idx){
+function renderQCard(q,idx,isCollapsed){
   var opts=q.options||{};
   var al=(q.answer_letter||'').trim().toUpperCase();
   var isKey=q.answer_source==='from_key';
@@ -842,16 +971,20 @@ function renderQCard(q,idx){
   if(q.explanation)    ansH+='<div class="evbox"><b>Explanation:</b> '+esc(q.explanation)+'</div>';
   ansH+='</div>';
 
-  return'<div class="qcard'+(q.conflict?' conflict':'')+'">'+
-    '<div class="qhdr">'+
+  var colCls = isCollapsed ? ' collapsed' : '';
+  var icon = isCollapsed ? '▶' : '▼';
+
+  return'<div class="qcard'+(q.conflict?' conflict':'')+colCls+'" id="qc-'+idx+'">'+
+    '<div class="qhdr" onclick="toggleCard(this.closest(\'.qcard\'))" title="Click to collapse / expand">'+
+    '<button type="button" class="q-toggle-btn" onclick="event.stopPropagation();toggleCard(this.closest(\'.qcard\'))" title="Toggle collapse">'+icon+'</button>'+
     (q.q_number?'<span class="badge">#'+esc(String(q.q_number))+'</span>':'')+
     '<span class="badge'+(q.qtype==='mcq'?' b':'')+'">'+esc(q.qtype||'MCQ')+'</span>'+
     (q.lesson?'<span class="badge">'+esc(q.lesson)+'</span>':'')+
     (hasAns?'<span class="badge'+(isKey?' b':' g')+'">'+(isKey?'From Key':'Marked')+'</span>':'<span class="badge a">No Answer</span>')+
     (q.conflict?'<span class="badge r">Conflict</span>':'')+
-    '<button class="pri" style="margin-left:auto;padding:2px 7px;font-size:11px" onclick="openEdit('+idx+')">✏️ Edit</button>'+
+    '<button class="pri" style="margin-left:auto;padding:2px 7px;font-size:11px" onclick="event.stopPropagation();openEdit('+idx+')">✏️ Edit</button>'+
     '</div>'+
-    '<div class="qtxt">'+esc(q.question)+'</div>'+
+    '<div class="qtxt" onclick="if(this.closest(\'.qcard\').classList.contains(\'collapsed\')) toggleCard(this.closest(\'.qcard\'))">'+esc(q.question)+'</div>'+
     optsH+ansH+
     '<div class="qfoot"><span style="color:var(--mut)">'+esc(curBook.name)+' (p.'+q.source_page+')</span>'+
     '<details><summary style="cursor:pointer;color:var(--pri)">Raw JSON</summary>'+
@@ -860,11 +993,27 @@ function renderQCard(q,idx){
 }
 
 /* ─── PAGE CONTROLS ─── */
+function getActiveNavPages(){
+  var searchStr = (G('cmp-search') ? G('cmp-search').value : '').trim();
+  var hasActiveLesson = selectedLessonsCmp.size > 0 && selectedLessonsCmp.size < allLessons.length;
+  var pages = getQuestionPages();
+  if(searchStr || hasActiveLesson){
+    var filtered = [];
+    pages.forEach(function(p){
+      if(curBkQs.some(function(q){ return q.source_page === p && qMatchesFilter(q, searchStr, selectedLessonsCmp); })){
+        filtered.push(p);
+      }
+    });
+    if(filtered.length) return filtered;
+  }
+  return pages;
+}
+
 G('pp-btn').onclick=function(){
-  var qPages = getQuestionPages();
-  var curIdx = qPages.indexOf(curPg);
+  var pages = getActiveNavPages();
+  var curIdx = pages.indexOf(curPg);
   if(curIdx > 0){
-    curPg = qPages[curIdx - 1];
+    curPg = pages[curIdx - 1];
     renderCurPage();
   } else if(curPg > 1){
     curPg--;
@@ -872,10 +1021,10 @@ G('pp-btn').onclick=function(){
   }
 };
 G('np-btn').onclick=function(){
-  var qPages = getQuestionPages();
-  var curIdx = qPages.indexOf(curPg);
-  if(curIdx !== -1 && curIdx < qPages.length - 1){
-    curPg = qPages[curIdx + 1];
+  var pages = getActiveNavPages();
+  var curIdx = pages.indexOf(curPg);
+  if(curIdx !== -1 && curIdx < pages.length - 1){
+    curPg = pages[curIdx + 1];
     renderCurPage();
   } else if(curPg < curBook.max_page){
     curPg++;
@@ -884,6 +1033,37 @@ G('np-btn').onclick=function(){
 };
 G('pg-in').onchange=function(){var v=parseInt(this.value);if(v>=1&&v<=curBook.max_page){curPg=v;renderCurPage();}};
 G('rfrsh').onclick=async function(){await loadBkQs(curBook.slug);renderCurPage();};
+if(G('btn-toggle-all-t1')) G('btn-toggle-all-t1').onclick = toggleAllT1;
+if(G('cmp-search')){
+  G('cmp-search').oninput = function(){
+    if(G('cmp-search-clear')) G('cmp-search-clear').style.display = this.value ? 'inline-block' : 'none';
+    renderChips();
+    renderCurPage();
+  };
+  G('cmp-search').onkeydown = function(e){
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      var s = this.value.trim();
+      if(s){
+        for(var i=0; i<curBkQs.length; i++){
+          if(qMatchesFilter(curBkQs[i], s, selectedLessonsCmp)){
+            curPg = curBkQs[i].source_page;
+            renderCurPage();
+            break;
+          }
+        }
+      }
+    }
+  };
+}
+if(G('cmp-search-clear')){
+  G('cmp-search-clear').onclick = function(){
+    G('cmp-search').value = '';
+    this.style.display = 'none';
+    renderChips();
+    renderCurPage();
+  };
+}
 window.addEventListener('keydown',function(e){
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT') return;
   if(e.key==='ArrowLeft') G('pp-btn').click();
@@ -1029,15 +1209,19 @@ async function loadQuestions(){
       }
       ansH += '</div>';
 
-      return'<div class="qcard'+(it.conflict?' conflict':'')+'">'+
-        '<div class="qhdr">'+
+      var colCls = allCollapsedQb ? ' collapsed' : '';
+      var icon = allCollapsedQb ? '▶' : '▼';
+
+      return'<div class="qcard'+(it.conflict?' conflict':'')+colCls+'">'+
+        '<div class="qhdr" onclick="toggleCard(this.closest(\'.qcard\'))" title="Click to collapse / expand">'+
+        '<button type="button" class="q-toggle-btn" onclick="event.stopPropagation();toggleCard(this.closest(\'.qcard\'))" title="Toggle collapse">'+icon+'</button>'+
         '<span class="badge b">#'+it.id+'</span>'+
         '<span class="badge">'+esc(it.qtype||'MCQ')+'</span>'+
         (it.lesson?'<span class="badge">'+esc(it.lesson)+'</span>':'')+
         (it.repeat_count>1?'<span class="badge g">In '+it.repeat_count+' Books</span>':'')+
         (it.conflict?'<span class="badge r">Conflict</span>':'')+
         '</div>'+
-        '<div class="qtxt">'+esc(it.question)+'</div>'+
+        '<div class="qtxt" onclick="if(this.closest(\'.qcard\').classList.contains(\'collapsed\')) toggleCard(this.closest(\'.qcard\'))">'+esc(it.question)+'</div>'+
         optsH+ansH+
         '<div class="srcchips">'+(it.appears_in||[]).map(function(s){return'<span class="sc">'+esc(s)+'</span>';}).join('')+'</div>'+
         '</div>';
@@ -1048,20 +1232,22 @@ async function loadQuestions(){
 G('qb-go').onclick=function(){qbPg=1;loadQuestions();};
 G('qb-prev').onclick=function(){if(qbPg>1){qbPg--;loadQuestions();}};
 G('qb-next').onclick=function(){qbPg++;loadQuestions();};
+if(G('btn-toggle-all-qb')) G('btn-toggle-all-qb').onclick = toggleAllQb;
 
 /* ─── EDIT MODAL ─── */
 function openEdit(idx){
-  var hasActiveFilter = selectedLessonsCmp.size > 0 && selectedLessonsCmp.size < allLessons.length;
-  var qs=curBkQs.filter(function(q){
-    if(q.source_page!==curPg)return false;
-    if(hasActiveFilter){
-      var l=(q.lesson||'').trim();
-      if(!selectedLessonsCmp.has(l)) return false;
-    }
-    return true;
-  });
-  var q=qs[idx]; if(!q)return;
-  editTgt={q:q,idx:idx};
+  var q = curBkQs[idx];
+  if(!q){
+    var searchStr = (G('cmp-search') ? G('cmp-search').value : '').trim();
+    var qs = curBkQs.filter(function(x){
+      if(x.source_page !== curPg) return false;
+      return qMatchesFilter(x, searchStr, selectedLessonsCmp);
+    });
+    q = qs[idx];
+    idx = curBkQs.indexOf(q);
+  }
+  if(!q) return;
+  editTgt = { q: q, idx: idx };
 
   G('eq-txt').value=q.question||'';
 
