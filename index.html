@@ -493,19 +493,29 @@ python run1b.py
         <textarea id="eq-txt" rows="3"></textarea>
       </div>
       <div class="fg">
-        <label>Correct Answer Letter <span id="eq-opt-hint" style="font-weight:400;font-size:11px;color:var(--mut)"></span></label>
-        <select id="eq-ans"></select>
-      </div>
-      <div class="fg">
         <label>Question Type</label>
         <select id="eq-qtype">
           <option value="mcq">MCQ</option>
+          <option value="true_false">True / False</option>
           <option value="essay">Essay / Written</option>
           <option value="case">Case</option>
-          <option value="true_false">True / False</option>
           <option value="matching">Matching</option>
           <option value="other">Other</option>
         </select>
+      </div>
+      <!-- Dynamic Options Section -->
+      <div class="fg" id="eq-opts-group">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <label style="margin:0">Options <span style="font-weight:400;font-size:11px;color:var(--mut)">(add, edit, or remove choices)</span></label>
+          <button type="button" id="eq-add-opt-btn" style="padding:3px 9px;font-size:11px;border-radius:4px;border:1px solid var(--pri);background:rgba(99,102,241,0.08);color:var(--pri);cursor:pointer;font-weight:700">+ Add Option</button>
+        </div>
+        <div id="eq-opts-list" style="display:flex;flex-direction:column;gap:6px;max-height:190px;overflow-y:auto;padding:6px;background:var(--tag-bg);border-radius:6px;border:1px solid var(--bdr)">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+      <div class="fg">
+        <label>Correct Answer Letter <span id="eq-opt-hint" style="font-weight:400;font-size:11px;color:var(--mut)"></span></label>
+        <select id="eq-ans"></select>
       </div>
       <div class="fg">
         <label>Lesson</label>
@@ -543,7 +553,17 @@ python run1b.py
   var isStatic = host === '' || host.indexOf('github.io') !== -1 || host.indexOf('netlify.app') !== -1 || window.location.protocol === 'file:';
   if(!isStatic) return;
 
-  var base = window.location.href.replace(/\/[^/]*$/, '/');
+  function getStaticBaseUrl(){
+    var loc = window.location;
+    var p = loc.pathname;
+    if(p.indexOf('.') !== -1){
+      p = p.substring(0, p.lastIndexOf('/') + 1);
+    } else if(!p.endsWith('/')){
+      p += '/';
+    }
+    return loc.origin + p;
+  }
+  var base = getStaticBaseUrl();
   var staticClusters = null;
   var staticQuestions = null;
   var origFetch = window.fetch.bind(window);
@@ -1359,8 +1379,28 @@ function saveProgressState(st){
 async function loadProgressDashboard(){
   try {
     if(!allBookLessons.length){
-      var r = await fetch('/api/book_lessons');
-      allBookLessons = await r.json();
+      var res = null;
+      var text = '';
+      try {
+        res = await fetch('/api/book_lessons');
+        if(res && res.ok){
+          text = await res.text();
+        }
+      } catch(e1){}
+
+      if(!text || text.trim().startsWith('<')){
+        // Fallback to static relative JSON file
+        var staticPath = (typeof base !== 'undefined' ? base : '') + 'data/book_lessons.json';
+        res = await fetch(staticPath);
+        text = await res.text();
+        if(text.trim().startsWith('<')){
+          // Try direct relative fallback
+          res = await fetch('data/book_lessons.json');
+          text = await res.text();
+        }
+      }
+
+      allBookLessons = JSON.parse(text);
     }
     progLoaded = true;
     renderProgressDashboard();
@@ -1816,7 +1856,120 @@ if(G('prog-import-file')){
   };
 }
 
-/* ─── EDIT MODAL ─── */
+/* ─── EDIT MODAL & DYNAMIC OPTIONS ─── */
+var currentEditOpts = [];
+
+function getNextOptionLetter(){
+  var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  var used = currentEditOpts.map(function(o){ return o.key.toUpperCase(); });
+  for(var i = 0; i < alphabet.length; i++){
+    if(used.indexOf(alphabet[i]) === -1) return alphabet[i];
+  }
+  return String.fromCharCode(65 + currentEditOpts.length);
+}
+
+function renderEditOptions(preferredAnsLetter){
+  var qtype = G('eq-qtype').value;
+  var optsGroup = G('eq-opts-group');
+  var list = G('eq-opts-list');
+  var ansSel = G('eq-ans');
+  var hint = G('eq-opt-hint');
+
+  if(qtype === 'true_false'){
+    if(optsGroup) optsGroup.style.display = 'none';
+    var cur = (preferredAnsLetter !== undefined ? preferredAnsLetter : ansSel.value).toLowerCase();
+    ansSel.innerHTML = '<option value="">— no answer —</option>' +
+      '<option value="t"'+(cur==='t'?' selected':'')+'>T — True</option>' +
+      '<option value="f"'+(cur==='f'?' selected':'')+'>F — False</option>';
+    if(hint) hint.textContent = '(True / False)';
+    return;
+  }
+
+  if(optsGroup) optsGroup.style.display = '';
+
+  // Render options list
+  if(!currentEditOpts.length){
+    list.innerHTML = '<div style="font-size:12px;color:var(--mut);text-align:center;padding:10px">No options yet. Click "+ Add Option" above to add choices (A, B, C...).</div>';
+  } else {
+    list.innerHTML = currentEditOpts.map(function(opt, idx){
+      return '<div class="eq-opt-row" style="display:flex;align-items:center;gap:6px">' +
+        '<span class="badge b" style="width:26px;text-align:center;font-weight:700">'+opt.key+'</span>' +
+        '<input type="text" class="eq-opt-val" data-idx="'+idx+'" data-key="'+opt.key+'" value="'+esc(opt.val)+'" placeholder="Option '+opt.key+' text..." style="flex:1;padding:4px 8px;font-size:12.5px;border-radius:4px;border:1px solid var(--bdr);background:var(--card);color:var(--txt)">' +
+        '<button type="button" class="eq-opt-del-btn" data-idx="'+idx+'" title="Delete option '+opt.key+'" style="border:none;background:transparent;color:var(--err);cursor:pointer;font-size:13px;padding:2px 5px">✖</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  // Bind input listeners for live updates to Correct Answer dropdown
+  list.querySelectorAll('.eq-opt-val').forEach(function(inp){
+    inp.oninput = function(){
+      var idx = parseInt(this.getAttribute('data-idx'));
+      if(currentEditOpts[idx]){
+        currentEditOpts[idx].val = this.value;
+      }
+      refreshCorrectAnswerDropdown(ansSel.value);
+    };
+  });
+
+  list.querySelectorAll('.eq-opt-del-btn').forEach(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var idx = parseInt(this.getAttribute('data-idx'));
+      var removed = currentEditOpts.splice(idx, 1)[0];
+      var curVal = ansSel.value;
+      if(removed && curVal && curVal.toLowerCase() === removed.key.toLowerCase()){
+        curVal = '';
+      }
+      renderEditOptions(curVal);
+    };
+  });
+
+  refreshCorrectAnswerDropdown(preferredAnsLetter);
+}
+
+function refreshCorrectAnswerDropdown(selectedLetter){
+  var ansSel = G('eq-ans');
+  var hint = G('eq-opt-hint');
+  var cur = (selectedLetter !== undefined ? selectedLetter : ansSel.value).toLowerCase();
+
+  var ansOpts = '<option value="">— no answer —</option>';
+  if(currentEditOpts.length){
+    currentEditOpts.forEach(function(opt){
+      var kLower = opt.key.toLowerCase();
+      var isSel = (cur === kLower);
+      var preview = opt.val ? (' — ' + esc(opt.val.substring(0, 50))) : ' (empty)';
+      ansOpts += '<option value="'+kLower+'"'+(isSel ? ' selected' : '')+'>'+opt.key+preview+'</option>';
+    });
+    var firstK = currentEditOpts[0].key;
+    var lastK = currentEditOpts[currentEditOpts.length - 1].key;
+    if(hint) hint.textContent = '(select from options ' + firstK + (firstK !== lastK ? ('-' + lastK) : '') + ')';
+  } else {
+    if(hint) hint.textContent = '(add options above)';
+  }
+  ansSel.innerHTML = ansOpts;
+}
+
+// Add option button listener
+if(G('eq-add-opt-btn')){
+  G('eq-add-opt-btn').onclick = function(){
+    var nextK = getNextOptionLetter();
+    currentEditOpts.push({ key: nextK, val: '' });
+    renderEditOptions(G('eq-ans').value);
+    // Focus the newly added input
+    var inputs = document.querySelectorAll('.eq-opt-val');
+    if(inputs.length){
+      inputs[inputs.length - 1].focus();
+    }
+  };
+}
+
+// Question type listener
+if(G('eq-qtype')){
+  G('eq-qtype').onchange = function(){
+    renderEditOptions(G('eq-ans').value);
+  };
+}
+
 function openEdit(idx){
   var q = curBkQs[idx];
   if(!q){
@@ -1831,30 +1984,30 @@ function openEdit(idx){
   if(!q) return;
   editTgt = { q: q, idx: idx };
 
-  G('eq-txt').value=q.question||'';
+  G('eq-txt').value = q.question || '';
+  G('eq-qtype').value = q.qtype || 'mcq';
+  G('eq-lesson').value = q.lesson || '';
+  G('eq-st').value = q.answer_status || 'not_shown';
+  G('eq-ev').value = q.answer_evidence || '';
 
-  var opts=q.options||{};
-  var okeys=Object.keys(opts).sort();
-  var ansOpts='<option value="">— no answer —</option>';
-  if(okeys.length){
-    okeys.forEach(function(k){
-      ansOpts+='<option value="'+k.toLowerCase()+'"'+(q.answer_letter&&q.answer_letter.toLowerCase()===k.toLowerCase()?' selected':'')+'>'+k+' — '+esc((opts[k]||'').substring(0,50))+'</option>';
-    });
-    G('eq-opt-hint').textContent='(select from options A–'+okeys[okeys.length-1]+')';
-  } else if(q.qtype==='true_false'){
-    ansOpts+='<option value="t"'+(q.answer_letter==='t'?' selected':'')+'>T — True</option>';
-    ansOpts+='<option value="f"'+(q.answer_letter==='f'?' selected':'')+'>F — False</option>';
-    G('eq-opt-hint').textContent='(True / False)';
-  } else {
-    ansOpts+='<option value="'+(q.answer_letter||'')+'"'+(q.answer_letter?' selected':'')+'>'+(q.answer_letter||'(type below)')+'</option>';
-    G('eq-opt-hint').textContent='(write directly in field)';
+  // Parse existing options
+  var rawOpts = q.options || {};
+  var okeys = Object.keys(rawOpts).sort();
+  currentEditOpts = okeys.map(function(k){
+    return { key: k.toUpperCase(), val: rawOpts[k] || '' };
+  });
+
+  // If MCQ and has no options, initialize with default A, B, C, D
+  if((!q.qtype || q.qtype === 'mcq') && !currentEditOpts.length){
+    currentEditOpts = [
+      { key: 'A', val: '' },
+      { key: 'B', val: '' },
+      { key: 'C', val: '' },
+      { key: 'D', val: '' }
+    ];
   }
-  G('eq-ans').innerHTML=ansOpts;
 
-  G('eq-qtype').value=q.qtype||'mcq';
-  G('eq-lesson').value=q.lesson||'';
-  G('eq-st').value=q.answer_status||'not_shown';
-  G('eq-ev').value=q.answer_evidence||'';
+  renderEditOptions(q.answer_letter || '');
   G('edit-mbk').classList.add('on');
 }
 
@@ -1864,28 +2017,53 @@ G('edit-mbk').onclick=function(e){if(e.target===this)this.classList.remove('on')
 
 G('edit-fm').onsubmit=async function(e){
   e.preventDefault();
-  if(!editTgt)return;
-  var payload={
-    book_slug:curBook.slug,
-    source_page:curPg,
-    q_index:editTgt.idx,
-    question_data:{
-      orig_question:editTgt.q.question,
-      question:G('eq-txt').value,
-      answer_letter:G('eq-ans').value,
-      qtype:G('eq-qtype').value,
-      lesson:G('eq-lesson').value,
-      answer_status:G('eq-st').value,
-      answer_evidence:G('eq-ev').value
+  if(!editTgt) return;
+
+  // Collect updated options
+  var finalOptions = {};
+  currentEditOpts.forEach(function(opt){
+    var v = opt.val.trim();
+    if(v){
+      finalOptions[opt.key] = v;
+    }
+  });
+
+  var payload = {
+    book_slug: curBook.slug,
+    source_page: curPg,
+    q_index: editTgt.idx,
+    question_data: {
+      orig_question: editTgt.q.question,
+      question: G('eq-txt').value,
+      options: finalOptions,
+      answer_letter: G('eq-ans').value,
+      qtype: G('eq-qtype').value,
+      lesson: G('eq-lesson').value,
+      answer_status: G('eq-st').value,
+      answer_evidence: G('eq-ev').value
     }
   };
-  saveEdit(Object.assign({book_slug:curBook.slug,source_page:curPg,timestamp:new Date().toISOString()},payload.question_data));
-  try{
-    var r=await fetch('/api/save_question',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    var res=await r.json();
-    if(res.success){alert('Saved successfully!');}
-    else{alert('Local edit saved.\n(Server: '+res.error+')');}
-  }catch(err){alert('Saved to local browser edits.\n(No server or static mode)');}
+
+  // Update in-memory question object directly so visualizer updates immediately
+  editTgt.q.question = payload.question_data.question;
+  editTgt.q.options = finalOptions;
+  editTgt.q.answer_letter = payload.question_data.answer_letter;
+  editTgt.q.qtype = payload.question_data.qtype;
+  editTgt.q.lesson = payload.question_data.lesson;
+  editTgt.q.answer_status = payload.question_data.answer_status;
+  editTgt.q.answer_evidence = payload.question_data.answer_evidence;
+
+  saveEdit(Object.assign({ book_slug: curBook.slug, source_page: curPg, timestamp: new Date().toISOString() }, payload.question_data));
+
+  try {
+    var r = await fetch('/api/save_question', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    var res = await r.json();
+    if(res.success){ alert('Saved successfully!'); }
+    else { alert('Local edit saved (Server: ' + res.error + ')'); }
+  } catch(err){
+    alert('Saved to local browser edits (Ready to export anytime)');
+  }
+
   G('edit-mbk').classList.remove('on');
   await loadBkQs(curBook.slug);
   renderCurPage();
