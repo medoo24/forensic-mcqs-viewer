@@ -681,6 +681,14 @@ python run1b.py
       });
     }
 
+    if(us.indexOf('/api/save_question') !== -1){
+      return jsonResp({ success: true, message: 'Saved to local browser storage.' });
+    }
+
+    if(us.indexOf('/api/import_edits') !== -1){
+      return jsonResp({ success: true, message: 'Edits imported to browser storage.' });
+    }
+
     return origFetch(url, opts);
   };
 })();
@@ -695,7 +703,41 @@ var zoom=1, panX=0, panY=0, isDrag=false, dsx,dsy;
 var EDITS_KEY='forensic_local_edits_v1';
 
 function getEdits(){try{return JSON.parse(localStorage.getItem(EDITS_KEY)||'[]');}catch(e){return[];}}
-function saveEdit(e){var ed=getEdits().filter(function(x){return!(x.book_slug===e.book_slug&&x.orig_question===e.orig_question);});ed.push(e);localStorage.setItem(EDITS_KEY,JSON.stringify(ed));}
+function saveEdit(e){
+  var ed = getEdits().filter(function(x){
+    return !(x.book_slug === e.book_slug && (x.orig_question === e.orig_question || (x.source_page === e.source_page && x.q_index === e.q_index)));
+  });
+  ed.push(e);
+  localStorage.setItem(EDITS_KEY, JSON.stringify(ed));
+}
+
+function applyLocalEditsToCurBk(){
+  if(!curBook || !curBkQs || !curBkQs.length) return;
+  var ed = getEdits();
+  if(!ed.length) return;
+  var bookEdits = ed.filter(function(x){ return x.book_slug === curBook.slug; });
+  if(!bookEdits.length) return;
+
+  bookEdits.forEach(function(edit){
+    var target = null;
+    if(edit.orig_question){
+      target = curBkQs.find(function(q){ return q.question === edit.orig_question; });
+    }
+    if(!target && edit.source_page !== undefined && edit.q_index !== undefined){
+      target = curBkQs[edit.q_index];
+    }
+    if(target){
+      if(edit.question !== undefined) target.question = edit.question;
+      if(edit.options !== undefined) target.options = edit.options;
+      if(edit.answer_letter !== undefined) target.answer_letter = edit.answer_letter;
+      if(edit.qtype !== undefined) target.qtype = edit.qtype;
+      if(edit.lesson !== undefined) target.lesson = edit.lesson;
+      if(edit.answer_status !== undefined) target.answer_status = edit.answer_status;
+      if(edit.answer_evidence !== undefined) target.answer_evidence = edit.answer_evidence;
+      target._is_locally_edited = true;
+    }
+  });
+}
 
 function esc(s){if(!s)return'';return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function G(id){return document.getElementById(id);}
@@ -877,6 +919,7 @@ async function selectBook(slug){
 async function loadBkQs(slug){
   try{var r=await fetch('/api/book?slug='+slug); curBkQs=await r.json();}
   catch(e){curBkQs=[];}
+  applyLocalEditsToCurBk();
 }
 
 function getQuestionPages(){
@@ -2053,19 +2096,22 @@ G('edit-fm').onsubmit=async function(e){
   editTgt.q.answer_status = payload.question_data.answer_status;
   editTgt.q.answer_evidence = payload.question_data.answer_evidence;
 
-  saveEdit(Object.assign({ book_slug: curBook.slug, source_page: curPg, timestamp: new Date().toISOString() }, payload.question_data));
+  saveEdit(Object.assign({ book_slug: curBook.slug, source_page: curPg, q_index: editTgt.idx, timestamp: new Date().toISOString() }, payload.question_data));
 
   try {
     var r = await fetch('/api/save_question', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    var res = await r.json();
-    if(res.success){ alert('Saved successfully!'); }
-    else { alert('Local edit saved (Server: ' + res.error + ')'); }
+    if(r.ok){
+      var res = await r.json();
+      alert(res.success ? 'Question saved successfully!' : 'Saved locally (Server: ' + (res.error || '') + ')');
+    } else {
+      alert('Question saved to local browser storage.');
+    }
   } catch(err){
-    alert('Saved to local browser edits (Ready to export anytime)');
+    alert('Question saved to local browser storage.');
   }
 
   G('edit-mbk').classList.remove('on');
-  await loadBkQs(curBook.slug);
+  applyLocalEditsToCurBk();
   renderCurPage();
 };
 
